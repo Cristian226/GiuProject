@@ -2,44 +2,114 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Movement : MonoBehaviour
+[RequireComponent(typeof(CharacterController))]
+public class PlayerMovement : MonoBehaviour
 {
-    public float speed = 5f;
-    public float sensitivity = 2f; // How fast the camera rotates
-    public float clampAngle = 80f; // Limits the up and down rotation
+    [SerializeField] private Transform playerCamera;
+    [SerializeField] private float cameraHeight = 1.5f;
+    [SerializeField] private float moveSpeed = 7f;
+    [SerializeField] private float sprintSpeed = 20f;
+    [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
+    [SerializeField] private KeyCode jumpKey = KeyCode.Space;
+    [SerializeField] private float lookSensitivity = 2f;
+    [SerializeField] private float minPitch = -80f;
+    [SerializeField] private float maxPitch = 80f;
+    [SerializeField] private float gravity = -9.81f;
+    [SerializeField] private float jumpForce = 1.5f;
 
-    private float rotationX = 0f; // Current X rotation (up/down)
-    private float rotationY = 0f; // Current Y rotation (left/right)
+    private CharacterController characterController;
+    private float cameraPitch;
+    private float verticalVelocity;
+
     // Start is called before the first frame update
     void Start()
     {
+        characterController = GetComponent<CharacterController>();
 
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        if (playerCamera == null)
+        {
+            Camera childCamera = GetComponentInChildren<Camera>();
+            if (childCamera != null)
+            {
+                playerCamera = childCamera.transform;
+            }
+            else if (Camera.main != null)
+            {
+                playerCamera = Camera.main.transform;
+            }
+        }
+
+        if (playerCamera != null)
+        {
+            if (playerCamera.parent != transform)
+            {
+                playerCamera.SetParent(transform, false);
+            }
+
+            playerCamera.localPosition = new Vector3(0f, cameraHeight, 0f);
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        float mouseX = Input.GetAxis("Mouse X");
-        float mouseY = Input.GetAxis("Mouse Y");
-        rotationY += mouseX * sensitivity;
-        rotationX -= mouseY * sensitivity;
-        rotationX = Mathf.Clamp(rotationX, -clampAngle, clampAngle);
-        transform.localRotation = Quaternion.Euler(rotationX, rotationY, 0);
-        if (Input.GetKey(KeyCode.S))
+        HandleMovement();
+        HandleMouseLook();
+    }
+
+    private void HandleMovement()
+    {
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Input.GetAxisRaw("Vertical");
+        Vector3 forward = transform.forward;
+        Vector3 right = transform.right;
+        if (playerCamera != null)
         {
-            transform.Translate(Vector3.forward * speed * Time.deltaTime);
+            forward = playerCamera.forward;
+            right = playerCamera.right;
+            forward.y = 0f;
+            right.y = 0f;
+            forward.Normalize();
+            right.Normalize();
         }
-        if (Input.GetKey(KeyCode.W))
+        Vector3 moveDirection = (right * horizontal + forward * vertical).normalized;
+
+        if (characterController.isGrounded && verticalVelocity < 0f)
         {
-            transform.Translate(Vector3.back * speed * Time.deltaTime);
+            verticalVelocity = -2f;
         }
-        if (Input.GetKey(KeyCode.A))
+        if (characterController.isGrounded)
         {
-            transform.Translate(Vector3.left * speed * Time.deltaTime);
+            if (Input.GetKeyDown(jumpKey))
+            {
+                verticalVelocity = Mathf.Sqrt(jumpForce * -1.7f * gravity);
+            }
         }
-        if (Input.GetKey(KeyCode.D))
+
+        verticalVelocity += gravity * Time.deltaTime;
+        float currentSpeed = Input.GetKey(sprintKey) ? sprintSpeed : moveSpeed;
+        Vector3 velocity = moveDirection * currentSpeed;
+        velocity.y = verticalVelocity;
+
+        characterController.Move(velocity * Time.deltaTime);
+    }
+
+    private void HandleMouseLook()
+    {
+        if (playerCamera == null)
         {
-            transform.Translate(Vector3.right * speed * Time.deltaTime);
+            return;
         }
+
+        float mouseX = Input.GetAxis("Mouse X") * lookSensitivity;
+        float mouseY = Input.GetAxis("Mouse Y") * lookSensitivity;
+
+        transform.Rotate(0f, mouseX, 0f);
+        cameraPitch -= mouseY;
+        cameraPitch = Mathf.Clamp(cameraPitch, minPitch, maxPitch);
+        playerCamera.localRotation = Quaternion.Euler(cameraPitch, 0f, 0f);
     }
 }
