@@ -36,9 +36,11 @@ public class NPCInteraction : MonoBehaviour
 
     public void Interact()
     {
+        PoliceDialogue pd = GetComponent<PoliceDialogue>();
+        if (pd != null) { pd.BeginInteraction(); return; }
+
         //if (!PlayerInRange()) return;
         if (DialogueManager.Instance == null) return;
-
         DialogueManager.Instance.StartDialogue(npcName, rootNode);
     }
 

@@ -3891,7 +3891,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AutoPlayAnimations: 1
   PaletteOverride: {fileID: 0}
---- !u!114 &300605787
+--- !u!114 &300605790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 300605781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17e25c81584ebb041b2589218b4ec565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &300605791
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3903,9 +3915,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30ef9fbd7a387f245b44d6ed2c16c37d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dialogueText: Hello! I am Maria, do you want to get started?
-  teleportTarget: {fileID: 2069753128}
+  teleportTarget: {fileID: 0}
   interactionDistance: 4
+  npcName: NPC
+  rootNode: {fileID: 0}
+  interactPromptUI: {fileID: 0}
 --- !u!1001 &302581853
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4212,11 +4226,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30ef9fbd7a387f245b44d6ed2c16c37d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dialogueText: Hello! I am Vasile! Are you curious to learn about the Romanian cuisine?
-    Allow me to take you on a delightfull journey, where you will experience the
-    essence of the Romanian taste. Shall we proceed?
   teleportTarget: {fileID: 2069753128}
   interactionDistance: 4
+  npcName: NPC
+  rootNode: {fileID: 0}
+  interactPromptUI: {fileID: 0}
 --- !u!1001 &343914313
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4319,6 +4333,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f96a444ab40c6e44889d5b87751fe7bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dialogueFont: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
 --- !u!4 &349596648
 Transform:
   m_ObjectHideFlags: 0
@@ -6591,7 +6606,10 @@ PrefabInstance:
       addedObject: {fileID: 300605784}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b6804d93e01b7124294eccd05c06e280, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 300605787}
+      addedObject: {fileID: 300605791}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b6804d93e01b7124294eccd05c06e280, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 300605790}
   m_SourcePrefab: {fileID: 100100000, guid: b6804d93e01b7124294eccd05c06e280, type: 3}
 --- !u!1001 &601315355
 PrefabInstance:
@@ -15765,11 +15783,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30ef9fbd7a387f245b44d6ed2c16c37d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dialogueText: Hello! Look how much you've learned so far! Let's put all of that
-    to a final test, afterwards, I am confident that you will have the basic knowledge
-    to explore Romania and discover everything at your own pace. Are you ready?
   teleportTarget: {fileID: 2069753128}
   interactionDistance: 4
+  npcName: NPC
+  rootNode: {fileID: 0}
+  interactPromptUI: {fileID: 0}
 --- !u!1001 &1539645532
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20370,10 +20388,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30ef9fbd7a387f245b44d6ed2c16c37d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dialogueText: Hello! Let me show you some important knowledge about the local currency,
-    the leu. Shall we begin?
   teleportTarget: {fileID: 2069753128}
   interactionDistance: 4
+  npcName: NPC
+  rootNode: {fileID: 0}
+  interactPromptUI: {fileID: 0}
 --- !u!1001 &1929267404
 PrefabInstance:
   m_ObjectHideFlags: 0

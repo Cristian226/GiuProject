@@ -23,6 +23,11 @@ public class DialogueManager : MonoBehaviour
     private Coroutine typewriterCoroutine;
     private bool isTyping = false;
     private float typewriterSpeed = 0.03f;
+    private bool externalControlled = false;
+    private TextMeshProUGUI instrBarText;
+
+    [Tooltip("Drag a TMP Font Asset here to override the default font on all dialogue text.")]
+    public TMP_FontAsset dialogueFont;
 
     void Awake()
     {
@@ -61,8 +66,8 @@ public class DialogueManager : MonoBehaviour
         dialoguePanel = new GameObject("DialoguePanel");
         dialoguePanel.transform.SetParent(canvasGO.transform, false);
         RectTransform panelRect = dialoguePanel.AddComponent<RectTransform>();
-        panelRect.anchorMin = new Vector2(0.15f, 0.05f);
-        panelRect.anchorMax = new Vector2(0.85f, 0.38f);
+        panelRect.anchorMin = new Vector2(0.1f, 0.04f);
+        panelRect.anchorMax = new Vector2(0.9f, 0.46f);
         panelRect.offsetMin = Vector2.zero;
         panelRect.offsetMax = Vector2.zero;
 
@@ -102,9 +107,16 @@ public class DialogueManager : MonoBehaviour
         textRect.offsetMin = Vector2.zero;
         textRect.offsetMax = Vector2.zero;
         dialogueText = textGO.AddComponent<TextMeshProUGUI>();
-        dialogueText.fontSize = 24;
+        dialogueText.enableAutoSizing = true;
+        dialogueText.fontSizeMin = 13;
+        dialogueText.fontSizeMax = 22;
         dialogueText.color = Color.white;
         dialogueText.alignment = TextAlignmentOptions.TopLeft;
+        dialogueText.lineSpacing = 8f;
+        dialogueText.enableWordWrapping = true;
+        dialogueText.overflowMode = TextOverflowModes.Overflow;
+        if (dialogueFont != null) dialogueText.font = dialogueFont;
+        if (dialogueFont != null) speakerNameText.font = dialogueFont;
 
         // Instruction bar
         GameObject instrGO = new GameObject("Instructions");
@@ -114,10 +126,10 @@ public class DialogueManager : MonoBehaviour
         instrRect.anchorMax = new Vector2(0.96f, 0.28f);
         instrRect.offsetMin = Vector2.zero;
         instrRect.offsetMax = Vector2.zero;
-        TextMeshProUGUI instrText = instrGO.AddComponent<TextMeshProUGUI>();
-        instrText.text = "<color=#44FF88>[Enter]</color> Accept        <color=#FF6666>[Esc]</color> Cancel";
-        instrText.fontSize = 18;
-        instrText.alignment = TextAlignmentOptions.BottomLeft;
+        instrBarText = instrGO.AddComponent<TextMeshProUGUI>();
+        instrBarText.text = "<color=#44FF88>[Enter]</color> Accept        <color=#FF6666>[Esc]</color> Cancel";
+        instrBarText.fontSize = 18;
+        instrBarText.alignment = TextAlignmentOptions.BottomLeft;
 
         //Choices container (vertical stack of buttons)
         GameObject choicesGO = new GameObject("ChoicesContainer");
@@ -178,6 +190,7 @@ public class DialogueManager : MonoBehaviour
     void Update()
     {
         if (!isOpen) return;
+        if (externalControlled) return;  // PoliceDialogue (or other specialist) owns input
         if (currentNode != null) return; // node-based dialogue, buttons handle everything
 
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
@@ -235,10 +248,13 @@ public class DialogueManager : MonoBehaviour
     private IEnumerator TypewriteText(string text, Action onComplete)
     {
         isTyping = true;
-        dialogueText.text = "";
-        foreach (char c in text)
+        dialogueText.text = text;               // full text set immediately — tags are complete
+        dialogueText.maxVisibleCharacters = 0;
+        dialogueText.ForceMeshUpdate();         // force TMP to parse tags before we count chars
+        int total = dialogueText.textInfo.characterCount;
+        for (int i = 0; i <= total; i++)
         {
-            dialogueText.text += c;
+            dialogueText.maxVisibleCharacters = i;
             yield return new WaitForSecondsRealtime(typewriterSpeed);
         }
         isTyping = false;
@@ -289,12 +305,35 @@ public class DialogueManager : MonoBehaviour
     {
         if (!isTyping) return;
         StopCoroutine(typewriterCoroutine);
+        typewriterCoroutine = null;
         isTyping = false;
-        dialogueText.text = currentNode.text;
-        RevealControls(currentNode);
+        dialogueText.maxVisibleCharacters = int.MaxValue;
+        if (currentNode != null) RevealControls(currentNode);
     }
+    // Used by PoliceDialogue (and future specialist scripts): shows the panel and text
+    // but hands all keyboard input back to the caller.
+    public void DisplayOnly(string speakerName, string bodyText, string instructions = "")
+    {
+        externalControlled = true;
+        speakerNameText.text = speakerName;
+        instrBarText.text = instructions;
+        ClearChoices();
+        continueButtonGO.SetActive(false);
+        if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
+        typewriterCoroutine = StartCoroutine(TypewriteText(bodyText, null));
+        dialoguePanel.SetActive(true);
+        isOpen = true;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
     public void Close()
     {
+        if (typewriterCoroutine != null) { StopCoroutine(typewriterCoroutine); typewriterCoroutine = null; }
+        dialogueText.maxVisibleCharacters = int.MaxValue;
+        externalControlled = false;
+        instrBarText.text = "<color=#44FF88>[Enter]</color> Accept        <color=#FF6666>[Esc]</color> Cancel";
+        currentNode = null;
         dialoguePanel.SetActive(false);
         isOpen = false;
         Cursor.lockState = CursorLockMode.Locked;
