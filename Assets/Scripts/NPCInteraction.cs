@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class NPCInteraction : MonoBehaviour
 {
-    [TextArea(3, 8)]
-    public string dialogueText = "Hello! How can I help you?";
+    //[TextArea(3, 8)]
+    //public string dialogueText = "Hello! How can I help you?";
 
     [Tooltip("Where the player will be teleported when they accept.")]
     public Transform teleportTarget;
@@ -12,6 +12,15 @@ public class NPCInteraction : MonoBehaviour
     public float interactionDistance = 4f;
 
     private Transform playerTransform;
+
+    [Header("NPC Identity")]
+    public string npcName = "NPC";
+
+    [Header("Dialogue")]
+    public DialogueNode rootNode;
+
+    [Header("Interaction")]
+    public GameObject interactPromptUI;
 
     void Start()
     {
@@ -27,10 +36,10 @@ public class NPCInteraction : MonoBehaviour
 
     public void Interact()
     {
-        if (!PlayerInRange()) return;
+        //if (!PlayerInRange()) return;
         if (DialogueManager.Instance == null) return;
 
-        DialogueManager.Instance.Show(dialogueText, OnAccept);
+        DialogueManager.Instance.StartDialogue(npcName, rootNode);
     }
 
     private void OnAccept()
@@ -49,5 +58,11 @@ public class NPCInteraction : MonoBehaviour
         if (cc != null) cc.enabled = false;
         player.transform.position = teleportTarget.position;
         if (cc != null) cc.enabled = true;
+    }
+
+    void Update()
+    {
+        if (interactPromptUI != null)
+            interactPromptUI.SetActive(PlayerInRange());
     }
 }

@@ -24,11 +24,11 @@ public class PlayerInteraction : MonoBehaviour
     private void TryInteract()
     {
         if (playerCamera == null) return;
-
         Ray ray = playerCamera.ScreenPointToRay(new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f));
-
+        Debug.DrawRay(ray.origin, ray.direction * interactionRange, Color.red, 1f);  // ADD THIS
         if (Physics.Raycast(ray, out RaycastHit hit, interactionRange))
         {
+            Debug.Log($"[Interaction] Hit: {hit.collider.gameObject.name}");  // ADD THIS
             NPCInteraction npc = hit.collider.GetComponentInParent<NPCInteraction>();
             if (npc != null) npc.Interact();
         }
