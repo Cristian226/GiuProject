@@ -439,7 +439,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 39c03942bf01ba64da3e94c8dea92673, type: 2}
     - target: {fileID: 919132149155446097, guid: e9603e7a3938b4e47abbb7121bcbae61, type: 3}
       propertyPath: m_Name
-      value: Final
+      value: HistoryTeacher
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: e9603e7a3938b4e47abbb7121bcbae61, type: 3}
       propertyPath: m_Controller
@@ -455,6 +455,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e9603e7a3938b4e47abbb7121bcbae61, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1534966067}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e9603e7a3938b4e47abbb7121bcbae61, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1534966070}
   m_SourcePrefab: {fileID: 100100000, guid: e9603e7a3938b4e47abbb7121bcbae61, type: 3}
 --- !u!1001 &22878956
 PrefabInstance:
@@ -811,6 +814,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1616406060653692748, guid: f71041fd118fbb34aa9d2dd6a1d96fce, type: 3}
       insertIndex: -1
       addedObject: {fileID: 321372979}
+    - targetCorrespondingSourceObject: {fileID: 1616406060653692748, guid: f71041fd118fbb34aa9d2dd6a1d96fce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 321372980}
     - targetCorrespondingSourceObject: {fileID: 5489826104488316699, guid: f71041fd118fbb34aa9d2dd6a1d96fce, type: 3}
       insertIndex: -1
       addedObject: {fileID: 50861470}
@@ -3891,18 +3897,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AutoPlayAnimations: 1
   PaletteOverride: {fileID: 0}
---- !u!114 &300605790
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 300605781}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 17e25c81584ebb041b2589218b4ec565, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &300605791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3915,11 +3909,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30ef9fbd7a387f245b44d6ed2c16c37d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  teleportTarget: {fileID: 0}
-  interactionDistance: 4
-  npcName: NPC
-  rootNode: {fileID: 0}
-  interactPromptUI: {fileID: 0}
+  npcName: Police
+  lines:
+  - 'Hello
+
+'
+  - 'Welcome
+
+'
 --- !u!1001 &302581853
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4226,11 +4223,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30ef9fbd7a387f245b44d6ed2c16c37d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  teleportTarget: {fileID: 2069753128}
-  interactionDistance: 4
-  npcName: NPC
-  rootNode: {fileID: 0}
-  interactPromptUI: {fileID: 0}
+  npcName: Cook
+  lines: []
+--- !u!114 &321372980
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 321372975}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f153e75f3b0de6b46835b588dd6cdd66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  missionSceneName: CuisineScene
+  missionId: cuisine
+  introText: Want to learn something about Romanian cuisine? Step through and let's
+    begin!
+  alreadyDoneText: Great work earlier! Come back any time.
 --- !u!1001 &343914313
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6515,7 +6526,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: ebb2a977bbaff8746a79bfc005d77a66, type: 2}
     - target: {fileID: 919132149155446097, guid: 87dd643ab949229418ba9400e67cf1c0, type: 3}
       propertyPath: m_Name
-      value: Doctor_Male_B
+      value: GeographyTeacher
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 87dd643ab949229418ba9400e67cf1c0, type: 3}
       propertyPath: m_Controller
@@ -6528,6 +6539,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 87dd643ab949229418ba9400e67cf1c0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1934586829}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 87dd643ab949229418ba9400e67cf1c0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1934586832}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 87dd643ab949229418ba9400e67cf1c0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1934586833}
   m_SourcePrefab: {fileID: 100100000, guid: 87dd643ab949229418ba9400e67cf1c0, type: 3}
 --- !u!1001 &592240636
 PrefabInstance:
@@ -6579,7 +6596,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: b6804d93e01b7124294eccd05c06e280, type: 3}
       propertyPath: m_Name
-      value: police_Female_A
+      value: Police
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: b6804d93e01b7124294eccd05c06e280, type: 3}
       propertyPath: m_TagString
@@ -6607,9 +6624,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b6804d93e01b7124294eccd05c06e280, type: 3}
       insertIndex: -1
       addedObject: {fileID: 300605791}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b6804d93e01b7124294eccd05c06e280, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 300605790}
   m_SourcePrefab: {fileID: 100100000, guid: b6804d93e01b7124294eccd05c06e280, type: 3}
 --- !u!1001 &601315355
 PrefabInstance:
@@ -14999,50 +15013,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d6cfbca0aa720344e9a0d920d30c1e75, type: 3}
---- !u!1 &1436918978
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1436918980}
-  - component: {fileID: 1436918979}
-  m_Layer: 0
-  m_Name: PostProcessing
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1436918979
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1436918978}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &1436918980
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1436918978}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.37779954, y: 0.50158495, z: 0.45959747}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1438809078
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15783,11 +15753,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30ef9fbd7a387f245b44d6ed2c16c37d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  teleportTarget: {fileID: 2069753128}
-  interactionDistance: 4
-  npcName: NPC
-  rootNode: {fileID: 0}
-  interactPromptUI: {fileID: 0}
+  npcName: History Teacher
+  lines: []
+--- !u!114 &1534966070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1534966061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f153e75f3b0de6b46835b588dd6cdd66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  missionSceneName: HistoryScene
+  missionId: history
+  introText: Want to learn something about Romania's history? Step through and let's
+    begin!
+  alreadyDoneText: Welcome back! Want to visit again?
 --- !u!1001 &1539645532
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20388,11 +20372,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30ef9fbd7a387f245b44d6ed2c16c37d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  teleportTarget: {fileID: 2069753128}
-  interactionDistance: 4
-  npcName: NPC
-  rootNode: {fileID: 0}
-  interactPromptUI: {fileID: 0}
+  npcName: Musician
+  lines: []
+--- !u!114 &1924475010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1924475003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f153e75f3b0de6b46835b588dd6cdd66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  missionSceneName: MusicScene
+  missionId: music
+  introText: Want to learn something about Romanian music? Step through and let's
+    begin!
+  alreadyDoneText: Welcome back! Want to visit again?
 --- !u!1001 &1929267404
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20561,6 +20559,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AutoPlayAnimations: 1
   PaletteOverride: {fileID: 0}
+--- !u!114 &1934586832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1934586826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f153e75f3b0de6b46835b588dd6cdd66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  missionSceneName: GeographyScene
+  missionId: geography
+  introText: Want to learn something about Romanian geography? Step through and let's
+    begin!
+  alreadyDoneText: Welcome back! Want to visit again?
+--- !u!114 &1934586833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1934586826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30ef9fbd7a387f245b44d6ed2c16c37d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  npcName: GeographyTeacher
+  lines: []
 --- !u!1001 &1958273411
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21106,7 +21135,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 991ea497f7aebb34384fd8bbb4035b4b, type: 2}
     - target: {fileID: 919132149155446097, guid: b6dde1c6fee9fe4478fbb2c3a0c333b4, type: 3}
       propertyPath: m_Name
-      value: MoneyExchange
+      value: Musician
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: b6dde1c6fee9fe4478fbb2c3a0c333b4, type: 3}
       propertyPath: m_Controller
@@ -21122,6 +21151,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b6dde1c6fee9fe4478fbb2c3a0c333b4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1924475009}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b6dde1c6fee9fe4478fbb2c3a0c333b4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1924475010}
   m_SourcePrefab: {fileID: 100100000, guid: b6dde1c6fee9fe4478fbb2c3a0c333b4, type: 3}
 --- !u!1001 &2026689107
 PrefabInstance:
@@ -23677,7 +23709,6 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1436918980}
   - {fileID: 964955258}
   - {fileID: 46930734}
   - {fileID: 2018096249}
