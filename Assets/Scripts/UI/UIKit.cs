@@ -92,4 +92,75 @@ public static class UIKit
         es.AddComponent<EventSystem>();
         es.AddComponent<StandaloneInputModule>();
     }
+
+    /// <summary>A clickable button (coloured plate + centred TMP label). Returns the
+    /// Button so callers can keep a handle (to relabel, disable, recolour…).</summary>
+    public static UnityEngine.UI.Button Button(Transform parent, string text, Color color,
+        System.Action onClick, float fontSize = 26)
+    {
+        Image img = Panel(parent, "Button", Vector2.zero, Vector2.one, color);
+        UnityEngine.UI.Button b = img.gameObject.AddComponent<UnityEngine.UI.Button>();
+        b.targetGraphic = img;
+
+        ColorBlock cb = b.colors;
+        cb.highlightedColor = new Color(1.15f * color.r, 1.15f * color.g, 1.15f * color.b, 1f);
+        cb.pressedColor = new Color(0.8f * color.r, 0.8f * color.g, 0.8f * color.b, 1f);
+        cb.fadeDuration = 0.08f;
+        b.colors = cb;
+
+        TextMeshProUGUI t = Label(img.transform, Vector2.zero, Vector2.one,
+            fontSize, FontStyles.Bold, TextAlignmentOptions.Center, UITheme.TextLight);
+        t.text = text;
+        t.margin = new Vector4(12, 0, 12, 0);
+        t.enableWordWrapping = true;
+
+        if (onClick != null) b.onClick.AddListener(() => onClick());
+        return b;
+    }
+
+    /// <summary>A horizontal slider built to Unity's standard hierarchy. Anchors fill
+    /// the parent rect, so place it inside a layout cell or a sized container.</summary>
+    public static UnityEngine.UI.Slider Slider(Transform parent, float min, float max, float value,
+        System.Action<float> onChange)
+    {
+        GameObject go = new GameObject("Slider");
+        go.transform.SetParent(parent, false);
+        Rect(go, Vector2.zero, Vector2.one);
+        UnityEngine.UI.Slider s = go.AddComponent<UnityEngine.UI.Slider>();
+
+        Image bg = Panel(go.transform, "Background",
+            new Vector2(0f, 0.35f), new Vector2(1f, 0.65f), new Color(0.10f, 0.12f, 0.20f, 1f));
+
+        // Fill Area -> Fill
+        GameObject fillArea = new GameObject("Fill Area");
+        fillArea.transform.SetParent(go.transform, false);
+        RectTransform far = Rect(fillArea, new Vector2(0f, 0.35f), new Vector2(1f, 0.65f));
+        far.offsetMin = new Vector2(10, 0); far.offsetMax = new Vector2(-10, 0);
+        Image fill = Panel(fillArea.transform, "Fill", Vector2.zero, Vector2.one, UITheme.Accent);
+        RectTransform fillRt = fill.rectTransform;
+        fillRt.anchorMin = new Vector2(0f, 0f); fillRt.anchorMax = new Vector2(0f, 1f);
+        fillRt.sizeDelta = new Vector2(10, 0);
+
+        // Handle Slide Area -> Handle
+        GameObject hsa = new GameObject("Handle Slide Area");
+        hsa.transform.SetParent(go.transform, false);
+        RectTransform hsaRt = Rect(hsa, Vector2.zero, Vector2.one);
+        hsaRt.offsetMin = new Vector2(10, 0); hsaRt.offsetMax = new Vector2(-10, 0);
+        Image handle = Panel(hsa.transform, "Handle", Vector2.zero, Vector2.one, Color.white);
+        RectTransform handleRt = handle.rectTransform;
+        handleRt.anchorMin = new Vector2(0f, 0f); handleRt.anchorMax = new Vector2(0f, 1f);
+        handleRt.sizeDelta = new Vector2(22, 0);
+
+        s.fillRect = fillRt;
+        s.handleRect = handleRt;
+        s.targetGraphic = handle;
+        s.direction = UnityEngine.UI.Slider.Direction.LeftToRight;
+        s.minValue = min;
+        s.maxValue = max;
+        s.value = value;
+        s.wholeNumbers = false;
+
+        if (onChange != null) s.onValueChanged.AddListener(v => onChange(v));
+        return s;
+    }
 }

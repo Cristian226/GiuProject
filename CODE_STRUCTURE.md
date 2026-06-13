@@ -12,8 +12,25 @@ Assets/Scripts/
 ├── Dialogue/      the dialogue box system and NPC conversations
 ├── Missions/      the learning mini-game engine and its content
 ├── UI/            shared, code-built user-interface pieces
+├── World/         world boundaries / play-area containment
 └── Editor/        editor-only tools (not part of the build)
 ```
+
+> **Expansion phase additions** — see [FEATURES_AND_SETUP.md](FEATURES_AND_SETUP.md)
+> for the full description and one-time setup. In short:
+> - **Core/**: `SaveSystem` + `GameProgress` (save/continue, auto-save),
+>   `GameSettings` (rebindable controls, mouse, audio, graphics — PlayerPrefs),
+>   `AudioManager` (volume buses + synthesised instrument tones + `Resources/Music`
+>   jukebox), `Collectibles` (reward catalog), `FinaleNpcManager` (spawns the
+>   final-quest NPC when all items are collected).
+> - **UI/**: `SettingsMenu`, `PauseMenu`, `InventoryUI`, `MainMenuController`
+>   (Continue/New Game), and an FPS counter in `ScreenPrompt`.
+> - **World/**: `WorldBounds` (invisible perimeter walls + fall-respawn).
+> - **Interaction/**: `SoundProp`, `MusicJukebox`, `FinaleGiver`, `FinaleStation`.
+> - **Missions/**: `FinaleMission` (capstone quiz).
+> - **Editor/**: `RomaniaGameTools` builds the themed Train Station / Castle Museum /
+>   Theatre, plus the Menu and Finale scenes (the original `MissionSceneBuilder` and
+>   the Cuisine scene are left untouched).
 
 ### How a play session flows
 1. **Player** walks around (`Player/`) and aims the crosshair.

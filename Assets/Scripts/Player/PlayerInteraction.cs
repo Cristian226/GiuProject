@@ -30,9 +30,9 @@ public class PlayerInteraction : MonoBehaviour
         IInteractable target = FindTarget();
         if (target == null) return;
 
-        ScreenPrompt.Request($"<color=#FFE08A>[E]</color> {target.Prompt}");
+        ScreenPrompt.Request($"<color=#FFE08A>[{GameSettings.KeyLabel(GameAction.Interact)}]</color> {target.Prompt}");
 
-        if (Input.GetKeyDown(KeyCode.E) || Input.GetMouseButtonDown(0))
+        if (GameSettings.Pressed(GameAction.Interact) || Input.GetMouseButtonDown(0))
             target.Interact();
     }
 

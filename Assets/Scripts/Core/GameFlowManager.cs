@@ -1,22 +1,24 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Persistent controller for the "leave the island -> do a mission -> come back"
-/// flow. Survives scene loads (DontDestroyOnLoad) and is a singleton.
+/// Persistent director of scene flow: the main-menu → island → mission → island
+/// loop. Survives scene loads (DontDestroyOnLoad) and is a singleton.
+///
+/// Progression (completed missions, collectibles, unlocks) is owned by
+/// <see cref="GameProgress"/>; this class drives <em>scene transitions</em> and the
+/// repositioning that makes the round-trips feel seamless.
 ///
 /// Flow:
-///   1. An NPC's <see cref="MissionGiver"/> calls StartMission(scene, id).
-///      We remember where the player was standing, then load the mission scene.
-///   2. Finishing the mini-game calls MarkCurrentMissionComplete() — it records the
-///      completion and toasts, but the player STAYS in the room to keep exploring.
-///   3. The player leaves whenever they like through the ReturnPortal door, which
-///      calls LeaveMission(); we load the island and drop them where they left.
-///
-/// Completed missions are remembered for the session (<see cref="IsComplete"/>),
-/// but completed missions can still be re-entered.
+///   1. <see cref="StartMission"/> remembers where the player stood, then loads the
+///      mission scene.
+///   2. Finishing the mini-game calls <see cref="MarkCurrentMissionComplete"/> — it
+///      records completion (+ awards a collectible) and toasts, but the player STAYS
+///      in the room to keep exploring.
+///   3. The player leaves through the ReturnPortal, which calls <see cref="LeaveMission"/>;
+///      we load the island and drop them where they left.
+///   4. The main menu uses <see cref="NewGame"/> / <see cref="ContinueGame"/>.
 /// </summary>
 public class GameFlowManager : MonoBehaviour
 {
@@ -25,16 +27,17 @@ public class GameFlowManager : MonoBehaviour
     [Tooltip("Scene name of the main island. Must be in File > Build Settings.")]
     public string mainSceneName = "MainScene";
 
+    [Tooltip("Scene name of the main menu. Must be in File > Build Settings.")]
+    public string menuSceneName = "MenuScene";
+
     private string currentMissionId;
-    private Vector3 returnPosition;
-    private Quaternion returnRotation;
-    private bool hasReturnPoint;
-    private bool repositionPending;
 
-    private readonly HashSet<string> completedMissions = new HashSet<string>();
+    // A single "put the player here after the next island load" mechanism, shared by
+    // mission-return and Continue.
+    private bool hasReposition;
+    private Vector3 repositionPos;
+    private Quaternion repositionRot;
 
-    // Guarantee a GameFlowManager exists before the first scene loads, so you
-    // never have to remember to place one in the scene.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
     {
@@ -44,8 +47,6 @@ public class GameFlowManager : MonoBehaviour
 
     void Awake()
     {
-        // Standard persistent-singleton guard. Any duplicate that ships inside a
-        // freshly loaded scene destroys itself, leaving the original in charge.
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
@@ -57,6 +58,53 @@ public class GameFlowManager : MonoBehaviour
         if (Instance == this) SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
+    /// <summary>The active player, tag-independent (see <see cref="PlayerMovement.Current"/>).</summary>
+    public static Transform FindPlayer()
+    {
+        if (PlayerMovement.Current != null) return PlayerMovement.Current.transform;
+        GameObject go = GameObject.FindGameObjectWithTag("Player");
+        return go != null ? go.transform : null;
+    }
+
+    // ── Menu entry points ─────────────────────────────────────────────────────
+    public void NewGame()
+    {
+        if (GameProgress.Instance != null) GameProgress.Instance.NewGame();
+        currentMissionId = null;
+        hasReposition = false;            // spawn at the scene's authored position
+        UIBlocker.Reset();
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(mainSceneName);
+    }
+
+    public void ContinueGame()
+    {
+        if (GameProgress.Instance != null)
+        {
+            GameProgress.Instance.LoadFromDisk();
+            if (GameProgress.Instance.TryGetSavedPlayerPose(out Vector3 pos, out Quaternion rot))
+            {
+                repositionPos = pos;
+                repositionRot = rot;
+                hasReposition = true;
+            }
+        }
+        currentMissionId = null;
+        UIBlocker.Reset();
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(mainSceneName);
+    }
+
+    public void LoadMainMenu()
+    {
+        currentMissionId = null;
+        hasReposition = false;
+        UIBlocker.Reset();
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(menuSceneName);
+    }
+
+    // ── Mission round-trip ────────────────────────────────────────────────────
     /// <summary>Remember the player's spot, then load a mission scene.</summary>
     public void StartMission(string sceneName, string missionId)
     {
@@ -67,54 +115,69 @@ public class GameFlowManager : MonoBehaviour
         }
 
         currentMissionId = missionId;
-        SaveReturnPoint();
+
+        Transform player = FindPlayer();
+        if (player != null)
+        {
+            repositionPos = player.position;
+            repositionRot = Quaternion.Euler(0f, player.eulerAngles.y, 0f);
+            hasReposition = true;
+        }
+
         UIBlocker.Reset();
+        Time.timeScale = 1f;
         SceneManager.LoadScene(sceneName);
     }
 
     /// <summary>
-    /// Record the active mission as done and toast — but stay in the room so the
-    /// player can keep exploring. They return on their own via the ReturnPortal.
+    /// Record the active mission as done, award its collectible and toast — but stay
+    /// in the room so the player can keep exploring. Auto-saves (via GameProgress).
     /// </summary>
     public void MarkCurrentMissionComplete()
     {
-        if (!string.IsNullOrEmpty(currentMissionId))
-        {
-            bool first = completedMissions.Add(currentMissionId);
-            Debug.Log($"[GameFlow] Mission complete: {currentMissionId}");
-            ScreenPrompt.Toast(first
-                ? "Mission complete! Explore, or use the door to return."
-                : "Completed again! Use the door to return.", 4f);
-        }
+        if (string.IsNullOrEmpty(currentMissionId)) return;
+
+        bool wasUnlocked = GameProgress.Instance != null && GameProgress.Instance.FinalQuestUnlocked;
+        bool first = GameProgress.Instance != null && GameProgress.Instance.CompleteMission(currentMissionId);
+        bool nowUnlocked = GameProgress.Instance != null && GameProgress.Instance.FinalQuestUnlocked;
+
+        Collectible reward = Catalog.ForMission(currentMissionId);
+        string msg;
+        if (first && reward != null)
+            msg = $"Mission complete!  Reward: {reward.displayName}.  Use the door to return.";
+        else if (first)
+            msg = "Mission complete!  Use the door to return.";
+        else
+            msg = "Completed again!  Use the door to return.";
+        ScreenPrompt.Toast(msg, 5f);
+
+        Debug.Log($"[GameFlow] Mission complete: {currentMissionId}");
+
+        if (!wasUnlocked && nowUnlocked)
+            StartCoroutine(ToastDelayed(
+                "All treasures collected!  The little guide in the city now has a final challenge for you.", 5.5f, 6f));
     }
 
     /// <summary>Leave the current mission and go back to the island.</summary>
     public void LeaveMission()
     {
         currentMissionId = null;
-        repositionPending = hasReturnPoint;
+        // hasReposition is already set from StartMission to the spot we left.
         UIBlocker.Reset();
+        Time.timeScale = 1f;
         SceneManager.LoadScene(mainSceneName);
     }
 
-    public bool IsComplete(string missionId) => completedMissions.Contains(missionId);
+    public bool IsComplete(string missionId) =>
+        GameProgress.Instance != null && GameProgress.Instance.IsMissionComplete(missionId);
 
-    private void SaveReturnPoint()
-    {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player == null) { hasReturnPoint = false; return; }
-
-        returnPosition = player.transform.position;
-        // Keep yaw only — pitch lives on the camera and resets cleanly on reload.
-        returnRotation = Quaternion.Euler(0f, player.transform.eulerAngles.y, 0f);
-        hasReturnPoint = true;
-    }
-
+    // ── Scene-load repositioning ──────────────────────────────────────────────
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         UIBlocker.Reset();
+        Time.timeScale = 1f;
 
-        if (scene.name == mainSceneName && repositionPending)
+        if (scene.name == mainSceneName && hasReposition)
             StartCoroutine(RepositionPlayerNextFrame());
     }
 
@@ -123,14 +186,23 @@ public class GameFlowManager : MonoBehaviour
         // Wait one frame so the island's player has run its own Start() first.
         yield return null;
 
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        Transform player = FindPlayer();
         if (player != null)
         {
             CharacterController cc = player.GetComponent<CharacterController>();
             if (cc != null) cc.enabled = false;    // CharacterController fights direct moves
-            player.transform.SetPositionAndRotation(returnPosition, returnRotation);
+            player.SetPositionAndRotation(repositionPos, repositionRot);
             if (cc != null) cc.enabled = true;
+
+            // Persist the island position so Continue resumes here next time.
+            if (GameProgress.Instance != null) GameProgress.Instance.Save(player);
         }
-        repositionPending = false;
+        hasReposition = false;
+    }
+
+    private IEnumerator ToastDelayed(string text, float seconds, float duration)
+    {
+        yield return new WaitForSeconds(seconds);
+        ScreenPrompt.Toast(text, duration);
     }
 }

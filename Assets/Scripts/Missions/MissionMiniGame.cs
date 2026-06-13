@@ -35,6 +35,7 @@ public class MissionMiniGame : MonoBehaviour
     private readonly HashSet<int> multiSelected = new HashSet<int>();
     private readonly List<Image> optionImages = new List<Image>();
     private List<string> orderWorking;
+    private List<MissionOption> multiOptions;   // shuffled options for the current MultiSelect step
 
     /// <summary>Find the existing mini-game in the scene or create one on demand.</summary>
     public static MissionMiniGame Get()
@@ -122,9 +123,9 @@ public class MissionMiniGame : MonoBehaviour
 
     private void RenderSingle(MissionStep step)
     {
-        for (int i = 0; i < step.options.Count; i++)
+        // Shuffle so the correct answer isn't always in the same slot.
+        foreach (MissionOption opt in ShuffledOptions(step.options))
         {
-            MissionOption opt = step.options[i];
             MissionOption captured = opt;
             GameObject btn = MakeButton(contentArea, opt.label, UITheme.ButtonNormal);
             btn.GetComponent<Button>().onClick.AddListener(() => OnSinglePick(step, captured));
@@ -149,10 +150,12 @@ public class MissionMiniGame : MonoBehaviour
 
     private void RenderMulti(MissionStep step)
     {
-        for (int i = 0; i < step.options.Count; i++)
+        // Shuffle once; both rendering and checking use this same order.
+        multiOptions = ShuffledOptions(step.options);
+        for (int i = 0; i < multiOptions.Count; i++)
         {
             int captured = i;
-            GameObject btn = MakeButton(contentArea, step.options[i].label, UITheme.ButtonNormal);
+            GameObject btn = MakeButton(contentArea, multiOptions[i].label, UITheme.ButtonNormal);
             optionImages.Add(btn.GetComponent<Image>());
             btn.GetComponent<Button>().onClick.AddListener(() => ToggleMulti(captured));
         }
@@ -169,10 +172,10 @@ public class MissionMiniGame : MonoBehaviour
     private void OnMultiSubmit(MissionStep step)
     {
         if (stepSolved) return;
-        for (int i = 0; i < step.options.Count; i++)
+        for (int i = 0; i < multiOptions.Count; i++)
         {
             bool picked = multiSelected.Contains(i);
-            if (picked != step.options[i].correct)
+            if (picked != multiOptions[i].correct)
             {
                 feedbackText.SetText("<color=#FF8073>Not quite — review which items belong.</color>");
                 return;
@@ -380,6 +383,18 @@ public class MissionMiniGame : MonoBehaviour
         UIKit.Label(img.transform, Vector2.zero, Vector2.one,
             24, FontStyles.Bold, TextAlignmentOptions.Center, UITheme.TextLight).text = text;
         return img.gameObject;
+    }
+
+    // Fisher-Yates copy of the options, so the correct answer lands in a random slot.
+    private static List<MissionOption> ShuffledOptions(List<MissionOption> src)
+    {
+        List<MissionOption> list = new List<MissionOption>(src);
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
+        return list;
     }
 
     // Fisher-Yates; guarantee the shuffle isn't already the correct order.
