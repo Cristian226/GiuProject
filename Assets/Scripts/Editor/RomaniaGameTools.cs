@@ -111,6 +111,68 @@ public static class RomaniaGameTools
             "Tweak the box in the Inspector if needed, then save the scene.", "OK");
     }
 
+    [MenuItem("Tools/Romania Game/World/Place Final Quest On little_boy_B (open MainScene first)")]
+    public static void PlaceFinaleGiver()
+    {
+        GameObject npc = FindInOpenScenes("little_boy_B");
+        if (npc == null)
+        {
+            EditorUtility.DisplayDialog("Romania Game",
+                "Couldn't find a GameObject named 'little_boy_B' in the open scene(s).\n\n" +
+                "Open MainScene (the city) first, then run this again.", "OK");
+            return;
+        }
+
+        // The final quest should live on exactly one NPC: remove any stray giver elsewhere.
+        foreach (FinaleGiver stray in UnityEngine.Object.FindObjectsOfType<FinaleGiver>())
+            if (stray.gameObject != npc) UnityEngine.Object.DestroyImmediate(stray);
+
+        // Drop any plain chatter component so the FinaleGiver is the only thing the player triggers.
+        NPCInteraction chatter = npc.GetComponent<NPCInteraction>();
+        if (chatter != null) UnityEngine.Object.DestroyImmediate(chatter);
+
+        FinaleGiver fg = npc.GetComponent<FinaleGiver>();
+        if (fg == null) fg = npc.AddComponent<FinaleGiver>();
+        fg.npcName = "Andrei";
+        fg.finaleSceneName = "FinaleScene";
+        fg.finaleMissionId = "finale";
+
+        EditorUtility.SetDirty(npc);
+        EditorSceneManager.MarkSceneDirty(npc.scene);
+        EditorUtility.DisplayDialog("Romania Game",
+            "The Grand Final Challenge is now on 'little_boy_B'.\n\n" +
+            "Until the player finishes all four missions (cuisine, geography, history, music) " +
+            "he asks them to come back later; once every treasure is collected he offers the " +
+            "final quest.\n\nSave the scene (Ctrl+S) to keep it.", "Great");
+    }
+
+    /// <summary>Depth-first search for a GameObject by name across every loaded scene.</summary>
+    private static GameObject FindInOpenScenes(string name)
+    {
+        for (int s = 0; s < SceneManager.sceneCount; s++)
+        {
+            Scene scene = SceneManager.GetSceneAt(s);
+            if (!scene.isLoaded) continue;
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                Transform t = FindByName(root.transform, name);
+                if (t != null) return t.gameObject;
+            }
+        }
+        return null;
+    }
+
+    private static Transform FindByName(Transform t, string name)
+    {
+        if (string.Equals(t.name, name, StringComparison.OrdinalIgnoreCase)) return t;
+        for (int i = 0; i < t.childCount; i++)
+        {
+            Transform r = FindByName(t.GetChild(i), name);
+            if (r != null) return r;
+        }
+        return null;
+    }
+
     [MenuItem("Tools/Romania Game/App/Register ALL Scenes In Build Settings")]
     public static void RegisterScenes()
     {
@@ -174,51 +236,67 @@ public static class RomaniaGameTools
         for (int i = -10; i <= 10; i++)
             Box(root, $"Sleeper_{i}", new Vector3(i * 2f, 0.08f, 2.2f), new Vector3(0.4f, 0.12f, 2.4f), sleeperMat);
 
-        // ── A detailed standing train (natural colours). The player looks north,
-        //    so the side facing them is the -z face (faceZ). ──
-        Material trainBlue  = Mat(new Color(0.17f, 0.33f, 0.50f), 0.25f, 0.45f);  // muted steel blue
-        Material trainCream = Mat(new Color(0.90f, 0.89f, 0.83f), 0.10f, 0.35f);
-        Material trainRoof  = Mat(new Color(0.40f, 0.43f, 0.47f), 0.35f, 0.50f);
-        Material chassis    = Mat(new Color(0.12f, 0.12f, 0.14f), 0.50f, 0.40f);
-        Material trainYellow = Mat(new Color(0.90f, 0.78f, 0.18f), 0.10f, 0.40f);
-        Material headlight  = Mat(new Color(1f, 0.97f, 0.80f), 0f, 0.9f, new Color(0.75f, 0.70f, 0.40f));
+        // ── A detailed electric train in a calm, natural CFR-style livery (deep navy
+        //    body, ivory waist band, grey roof). The player looks north, so the side
+        //    facing them is the -z face (faceZ). ──
+        Material trainBlue  = Mat(new Color(0.12f, 0.23f, 0.40f), 0.30f, 0.45f);  // deep navy steel
+        Material trainCream = Mat(new Color(0.91f, 0.89f, 0.82f), 0.08f, 0.35f);  // ivory band
+        Material trainRoof  = Mat(new Color(0.42f, 0.45f, 0.49f), 0.45f, 0.45f);  // grey roof
+        Material chassis    = Mat(new Color(0.10f, 0.10f, 0.12f), 0.55f, 0.40f);  // near-black underframe
+        Material trainYellow= Mat(new Color(0.93f, 0.78f, 0.16f), 0.10f, 0.40f);  // warning ends
+        Material trainSteel = Mat(new Color(0.22f, 0.23f, 0.26f), 0.70f, 0.55f);  // pantograph / details
+        Material headlight  = Mat(new Color(1f, 0.97f, 0.80f), 0f, 0.9f, new Color(0.85f, 0.78f, 0.45f));
+        Material tailLamp   = Mat(new Color(0.85f, 0.12f, 0.10f), 0f, 0.7f, new Color(0.45f, 0.02f, 0.02f));
         Transform train = new GameObject("Train").transform; train.SetParent(root, false);
         const float rz = 2.2f;            // track centre line
-        const float faceZ = rz - 1.28f;   // the body face toward the player
+        const float faceZ = rz - 1.30f;   // the body face toward the player
 
-        // Locomotive
+        // ── Locomotive (west end) ──
         float lx = -13.5f;
-        Box(train, "Loco_Chassis", new Vector3(lx, 0.85f, rz), new Vector3(9.4f, 0.5f, 2.6f), chassis);
-        Box(train, "Loco_Body",    new Vector3(lx, 1.85f, rz), new Vector3(9.0f, 1.9f, 2.4f), trainBlue);
-        Box(train, "Loco_Band",    new Vector3(lx, 1.25f, faceZ), new Vector3(9.02f, 0.4f, 0.04f), trainCream);
-        Box(train, "Loco_Roof",    new Vector3(lx, 2.95f, rz), new Vector3(8.6f, 0.35f, 2.3f), trainRoof);
-        Box(train, "Loco_Cab",     new Vector3(lx + 3.2f, 3.05f, rz), new Vector3(2.4f, 1.2f, 2.2f), trainBlue);
-        Box(train, "Loco_CabWin",  new Vector3(lx + 3.2f, 3.15f, faceZ + 0.04f), new Vector3(1.9f, 0.7f, 0.05f), glassMat);
+        Box(train, "Loco_Underframe", new Vector3(lx, 0.78f, rz), new Vector3(9.6f, 0.45f, 2.7f), chassis);
+        Box(train, "Loco_Body",       new Vector3(lx, 1.85f, rz), new Vector3(9.0f, 1.85f, 2.45f), trainBlue);
+        Box(train, "Loco_Skirt",      new Vector3(lx, 1.05f, faceZ + 0.02f), new Vector3(9.0f, 0.35f, 0.04f), chassis);
+        Box(train, "Loco_Band",       new Vector3(lx, 1.55f, faceZ + 0.02f), new Vector3(9.02f, 0.32f, 0.04f), trainCream);
+        Box(train, "Loco_Roof",       new Vector3(lx, 2.85f, rz), new Vector3(8.7f, 0.4f, 2.35f), trainRoof);
+        Box(train, "Loco_RoofStep",   new Vector3(lx + 3.1f, 3.05f, rz), new Vector3(2.6f, 0.25f, 2.3f), trainRoof);
+        // Driver windscreen + side windows
+        Box(train, "Loco_CabWin",     new Vector3(lx + 4.3f, 2.35f, faceZ + 0.04f), new Vector3(1.7f, 0.85f, 0.05f), glassMat);
         for (int w = 0; w < 3; w++)
-            Box(train, $"Loco_Win_{w}", new Vector3(lx - 2.6f + w * 1.8f, 2.1f, faceZ + 0.03f), new Vector3(1.1f, 0.8f, 0.05f), glassMat);
-        // Yellow nose + headlights at the west end
-        float fx = lx - 4.8f;
-        Box(train, "Loco_Nose", new Vector3(fx, 1.85f, rz), new Vector3(0.4f, 1.9f, 2.4f), trainYellow);
-        Box(train, "Head_L", new Vector3(fx - 0.12f, 1.25f, rz - 0.75f), new Vector3(0.3f, 0.3f, 0.3f), headlight);
-        Box(train, "Head_R", new Vector3(fx - 0.12f, 1.25f, rz + 0.75f), new Vector3(0.3f, 0.3f, 0.3f), headlight);
-        for (int w = 0; w < 4; w++)
-            Cyl(train, $"Loco_Wheel_{w}", new Vector3(lx - 3f + w * 2f, 0.45f, faceZ + 0.05f), new Vector3(0.7f, 0.12f, 0.7f), chassis, new Vector3(90, 0, 0));
+            Box(train, $"Loco_Win_{w}", new Vector3(lx - 2.8f + w * 1.9f, 2.15f, faceZ + 0.03f), new Vector3(1.2f, 0.8f, 0.05f), glassMat);
+        // Roof grille + pantograph (raised arms toward the catenary)
+        Box(train, "Loco_Vent",       new Vector3(lx - 2.2f, 3.08f, rz), new Vector3(3.4f, 0.18f, 1.6f), trainSteel);
+        Box(train, "Panto_Base",      new Vector3(lx - 1.2f, 3.12f, rz), new Vector3(1.6f, 0.12f, 1.4f), trainSteel);
+        Box(train, "Panto_ArmA",      new Vector3(lx - 1.55f, 3.55f, rz), new Vector3(0.08f, 0.95f, 0.08f), trainSteel, new Vector3(30, 0, 0));
+        Box(train, "Panto_ArmB",      new Vector3(lx - 0.85f, 3.55f, rz), new Vector3(0.08f, 0.95f, 0.08f), trainSteel, new Vector3(-30, 0, 0));
+        Box(train, "Panto_Bar",       new Vector3(lx - 1.2f, 4.0f, rz), new Vector3(1.7f, 0.08f, 0.12f), trainSteel);
+        // Yellow warning nose + lamps + buffers (west end)
+        float fx = lx - 4.85f;
+        Box(train, "Loco_Nose",       new Vector3(fx, 1.85f, rz), new Vector3(0.4f, 1.85f, 2.45f), trainYellow);
+        Box(train, "Head_L",          new Vector3(fx - 0.1f, 2.2f, rz - 0.8f), new Vector3(0.28f, 0.28f, 0.25f), headlight);
+        Box(train, "Head_R",          new Vector3(fx - 0.1f, 2.2f, rz + 0.8f), new Vector3(0.28f, 0.28f, 0.25f), headlight);
+        Box(train, "Tail_Lamp",       new Vector3(fx - 0.1f, 1.2f, faceZ), new Vector3(0.22f, 0.22f, 0.06f), tailLamp);
+        Cyl(train, "Buffer_L",        new Vector3(fx - 0.2f, 1.0f, rz - 0.8f), new Vector3(0.22f, 0.2f, 0.22f), trainSteel, new Vector3(90, 0, 0));
+        Cyl(train, "Buffer_R",        new Vector3(fx - 0.2f, 1.0f, rz + 0.8f), new Vector3(0.22f, 0.2f, 0.22f), trainSteel, new Vector3(90, 0, 0));
+        Bogie(train, "Loco_BogieA", new Vector3(lx - 2.8f, 0f, rz), faceZ, chassis, trainSteel);
+        Bogie(train, "Loco_BogieB", new Vector3(lx + 2.8f, 0f, rz), faceZ, chassis, trainSteel);
 
-        // Two passenger carriages, cream with a blue band
+        // ── Two passenger carriages (ivory body, navy waist band) ──
         for (int c = 0; c < 2; c++)
         {
-            float cx = -3.4f + c * 9.2f;
-            Box(train, $"Car{c}_Chassis", new Vector3(cx, 0.85f, rz), new Vector3(8.6f, 0.45f, 2.5f), chassis);
-            Box(train, $"Car{c}_Body",    new Vector3(cx, 1.9f, rz), new Vector3(8.4f, 2.0f, 2.35f), trainCream);
-            Box(train, $"Car{c}_Band",    new Vector3(cx, 2.5f, faceZ), new Vector3(8.42f, 0.4f, 0.04f), trainBlue);
-            Box(train, $"Car{c}_Roof",    new Vector3(cx, 3.0f, rz), new Vector3(8.2f, 0.35f, 2.25f), trainRoof);
+            float cx = -3.2f + c * 9.4f;
+            Box(train, $"Car{c}_Underframe", new Vector3(cx, 0.78f, rz), new Vector3(8.8f, 0.4f, 2.6f), chassis);
+            Box(train, $"Car{c}_Body",       new Vector3(cx, 1.95f, rz), new Vector3(8.6f, 2.05f, 2.4f), trainCream);
+            Box(train, $"Car{c}_Band",       new Vector3(cx, 2.55f, faceZ + 0.02f), new Vector3(8.62f, 0.45f, 0.04f), trainBlue);
+            Box(train, $"Car{c}_Skirt",      new Vector3(cx, 1.0f, faceZ + 0.02f), new Vector3(8.6f, 0.3f, 0.04f), chassis);
+            Box(train, $"Car{c}_Roof",       new Vector3(cx, 3.05f, rz), new Vector3(8.3f, 0.4f, 2.3f), trainRoof);
+            Box(train, $"Car{c}_RoofVent",   new Vector3(cx, 3.28f, rz), new Vector3(6.5f, 0.14f, 0.5f), trainSteel);
             for (int w = 0; w < 5; w++)
-                Box(train, $"Car{c}_Win_{w}", new Vector3(cx - 3.2f + w * 1.6f, 2.05f, faceZ + 0.03f), new Vector3(1.1f, 0.85f, 0.05f), glassMat);
-            Box(train, $"Car{c}_Door0", new Vector3(cx - 3.9f, 1.7f, faceZ + 0.03f), new Vector3(0.5f, 1.7f, 0.05f), trainBlue);
-            Box(train, $"Car{c}_Door1", new Vector3(cx + 3.9f, 1.7f, faceZ + 0.03f), new Vector3(0.5f, 1.7f, 0.05f), trainBlue);
-            for (int w = 0; w < 4; w++)
-                Cyl(train, $"Car{c}_Wheel_{w}", new Vector3(cx - 3f + w * 2f, 0.45f, faceZ + 0.05f), new Vector3(0.65f, 0.12f, 0.65f), chassis, new Vector3(90, 0, 0));
-            Box(train, $"Car{c}_Coupler", new Vector3(cx - 4.6f, 0.9f, rz), new Vector3(0.6f, 0.2f, 0.25f), chassis);
+                Box(train, $"Car{c}_Win_{w}", new Vector3(cx - 3.2f + w * 1.6f, 2.15f, faceZ + 0.03f), new Vector3(1.15f, 0.85f, 0.05f), glassMat);
+            Box(train, $"Car{c}_Door0", new Vector3(cx - 3.95f, 1.75f, faceZ + 0.03f), new Vector3(0.55f, 1.85f, 0.05f), trainBlue);
+            Box(train, $"Car{c}_Door1", new Vector3(cx + 3.95f, 1.75f, faceZ + 0.03f), new Vector3(0.55f, 1.85f, 0.05f), trainBlue);
+            Bogie(train, $"Car{c}_BogieA", new Vector3(cx - 3.0f, 0f, rz), faceZ, chassis, trainSteel);
+            Bogie(train, $"Car{c}_BogieB", new Vector3(cx + 3.0f, 0f, rz), faceZ, chassis, trainSteel);
+            Box(train, $"Car{c}_Coupler", new Vector3(cx - 4.7f, 0.85f, rz), new Vector3(0.6f, 0.2f, 0.25f), chassis);
         }
 
         // Departure board
@@ -226,35 +304,57 @@ public static class RomaniaGameTools
             "<b>DEPARTURES</b>\nCluj-Napoca     13:40   Pl. 2\nIași            14:05   Pl. 3\nTimișoara       14:20   Pl. 1\nConstanța       14:55   Pl. 4\nBrașov          15:10   Pl. 2",
             new Vector3(-9, 3.6f, 20.4f), spawn, 1.5f, new Color(0.14f, 0.11f, 0.04f), new Vector2(11, 5), TextAlignmentOptions.TopLeft, signYellow);
 
-        // Railway network map: a framed parchment board with city dots + routes
+        // ── Railway network map: a framed parchment board with a believable route
+        //    network, the Black Sea and the Danube, plus a compass and legend. ──
         Vector3 mapC = new Vector3(10f, 3.9f, 20.5f);
-        Box(root, "Map_Frame", mapC, new Vector3(8.6f, 5.6f, 0.2f), woodMat);
-        Box(root, "Map_Surface", new Vector3(mapC.x, mapC.y, 20.42f), new Vector3(7.9f, 4.9f, 0.06f), Mat(new Color(0.86f, 0.82f, 0.70f)));
-        Sign(root, "Map_Title", "<b>RAILWAY NETWORK</b>", new Vector3(mapC.x, mapC.y + 2.05f, 20.34f), spawn, 0.8f,
-            new Color(0.18f, 0.13f, 0.08f), new Vector2(7.5f, 0.8f), TextAlignmentOptions.Center, null);
+        Box(root, "Map_Frame",   mapC, new Vector3(9.0f, 6.0f, 0.25f), woodMat);
+        Box(root, "Map_Mat",     new Vector3(mapC.x, mapC.y, 20.44f), new Vector3(8.4f, 5.4f, 0.05f), Mat(new Color(0.70f, 0.64f, 0.50f)));
+        Box(root, "Map_Surface", new Vector3(mapC.x, mapC.y, 20.42f), new Vector3(7.9f, 4.9f, 0.05f), Mat(new Color(0.90f, 0.85f, 0.73f)));
+
+        // Black Sea panel (east edge) + Danube ribbon — calm, natural blues
+        Material seaMat   = Mat(new Color(0.46f, 0.60f, 0.66f), 0.10f, 0.5f);
+        Material riverMat = Mat(new Color(0.54f, 0.67f, 0.72f), 0.10f, 0.5f);
+        Box(root, "Map_Sea",     new Vector3(mapC.x + 3.35f, mapC.y - 0.6f, 20.41f), new Vector3(1.0f, 3.6f, 0.04f), seaMat);
+        Box(root, "Map_Danube1", new Vector3(mapC.x - 0.4f, mapC.y - 1.95f, 20.40f), new Vector3(4.6f, 0.09f, 0.04f), riverMat, new Vector3(0, 0, 4));
+        Box(root, "Map_Danube2", new Vector3(mapC.x + 2.3f, mapC.y - 1.4f, 20.40f), new Vector3(1.7f, 0.09f, 0.04f), riverMat, new Vector3(0, 0, 62));
+        Sign(root, "Map_Title", "<b>RAILWAY NETWORK · CFR</b>", new Vector3(mapC.x, mapC.y + 2.15f, 20.33f), spawn, 0.7f,
+            new Color(0.18f, 0.13f, 0.08f), new Vector2(7.6f, 0.7f), TextAlignmentOptions.Center, null);
 
         (string name, float ox, float oy)[] cities =
         {
-            ("București", 0.4f, -1.5f), ("Brașov", 0.0f, 0.1f), ("Cluj", -2.6f, 1.3f),
-            ("Iași", 2.7f, 1.4f), ("Timișoara", -3.1f, -0.3f), ("Constanța", 3.1f, -1.6f),
+            ("București", 0.3f, -1.4f), ("Brașov", -0.1f, 0.3f), ("Cluj-Napoca", -2.7f, 1.4f),
+            ("Iași", 2.6f, 1.5f), ("Timișoara", -3.2f, -0.2f), ("Constanța", 2.9f, -1.4f),
+            ("Craiova", -1.7f, -1.7f),
         };
-        Material routeMat = Mat(new Color(0.45f, 0.30f, 0.14f));
-        Material dotMat = Mat(new Color(0.74f, 0.16f, 0.14f), 0f, 0.3f, new Color(0.25f, 0.02f, 0.02f));
-        Vector3 hub = new Vector3(mapC.x + cities[0].ox, mapC.y + cities[0].oy, 20.37f);
-        for (int i = 1; i < cities.Length; i++)
+        // Network edges (indices into cities) — a believable rail web, not a star.
+        (int a, int b)[] edges =
         {
-            Vector3 cp = new Vector3(mapC.x + cities[i].ox, mapC.y + cities[i].oy, 20.37f);
-            Vector3 d = cp - hub; float len = d.magnitude;
+            (0, 1), (1, 2), (2, 4), (4, 6), (6, 0), (1, 3), (0, 3), (0, 5), (1, 5),
+        };
+        Material routeMat = Mat(new Color(0.50f, 0.20f, 0.12f), 0f, 0.3f);
+        Material dotMat   = Mat(new Color(0.74f, 0.16f, 0.14f), 0f, 0.3f, new Color(0.25f, 0.02f, 0.02f));
+        foreach (var e in edges)
+        {
+            Vector3 pa = new Vector3(mapC.x + cities[e.a].ox, mapC.y + cities[e.a].oy, 20.38f);
+            Vector3 pb = new Vector3(mapC.x + cities[e.b].ox, mapC.y + cities[e.b].oy, 20.38f);
+            Vector3 d = pb - pa; float len = d.magnitude;
             float ang = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
-            Box(root, $"Route_{cities[i].name}", (hub + cp) * 0.5f, new Vector3(len, 0.07f, 0.03f), routeMat, new Vector3(0, 0, ang));
+            Box(root, $"Route_{e.a}_{e.b}", (pa + pb) * 0.5f, new Vector3(len, 0.06f, 0.03f), routeMat, new Vector3(0, 0, ang));
         }
         foreach (var ct in cities)
         {
-            Vector3 dp = new Vector3(mapC.x + ct.ox, mapC.y + ct.oy, 20.35f);
-            Box(root, $"Dot_{ct.name}", dp, new Vector3(0.3f, 0.3f, 0.08f), dotMat);
-            Sign(root, $"City_{ct.name}", ct.name, new Vector3(dp.x, dp.y + 0.38f, 20.33f), spawn, 0.5f,
-                new Color(0.12f, 0.08f, 0.04f), new Vector2(2.4f, 0.5f), TextAlignmentOptions.Center, null);
+            Vector3 dp = new Vector3(mapC.x + ct.ox, mapC.y + ct.oy, 20.36f);
+            Box(root, $"Dot_{ct.name}", dp, new Vector3(0.26f, 0.26f, 0.07f), dotMat);
+            Sign(root, $"City_{ct.name}", ct.name, new Vector3(dp.x, dp.y + 0.34f, 20.34f), spawn, 0.42f,
+                new Color(0.12f, 0.08f, 0.04f), new Vector2(2.6f, 0.45f), TextAlignmentOptions.Center, null);
         }
+        // Compass + legend
+        Sign(root, "Map_Compass", "<b>N</b>", new Vector3(mapC.x - 3.2f, mapC.y + 1.85f, 20.34f), spawn, 0.6f,
+            new Color(0.15f, 0.10f, 0.06f), new Vector2(0.8f, 0.7f), TextAlignmentOptions.Center, null);
+        Sign(root, "Map_SeaLabel", "Black Sea", new Vector3(mapC.x + 3.35f, mapC.y + 1.4f, 20.34f), spawn, 0.34f,
+            new Color(0.12f, 0.20f, 0.28f), new Vector2(1.1f, 0.8f), TextAlignmentOptions.Center, null);
+        Sign(root, "Map_Legend", "Red dot = city     Line = railway", new Vector3(mapC.x, mapC.y - 2.25f, 20.34f), spawn, 0.36f,
+            new Color(0.15f, 0.10f, 0.06f), new Vector2(6.5f, 0.5f), TextAlignmentOptions.Center, null);
 
         // Ticket machines near the entrance
         for (int i = 0; i < 3; i++)
@@ -510,8 +610,11 @@ public static class RomaniaGameTools
         st.AddComponent<FinaleStation>();
         Sign(root, "FinaleStation_Sign", "Final Challenge\n[Start the final test]", new Vector3(0, 2.0f, 7f), spawn, 1.2f, Color.white, new Vector2(6, 1.8f), TextAlignmentOptions.Center, null);
 
-        // Exit door — well inside the boundary so it is reachable (fixes the stuck door).
-        DoorAt(root, "Exit", "BACK TO THE CITY", new Vector3(0, 1.6f, -13.5f), spawn, Mat(new Color(0.34f, 0.22f, 0.12f)));
+        // Exit door — set clear of the south wall (the old build had it flush with the
+        // wall, so the crosshair caught the wall instead and the door wouldn't trigger).
+        // A green glow makes it easy to find after the challenge.
+        DoorAt(root, "Exit", "BACK TO THE CITY", new Vector3(0, 1.6f, -13.0f), spawn, Mat(new Color(0.34f, 0.22f, 0.12f)));
+        PointLight(root, "ExitGlow", new Vector3(0, 2.8f, -12.0f), new Color(0.55f, 1f, 0.75f), 7f, 1.6f);
 
         Player(spawn, 0f);
         Bounds(new Vector3(0, 0, 0), new Vector3(32, 22, 32));
@@ -582,6 +685,19 @@ public static class RomaniaGameTools
         go.transform.localScale = scale;   // note: cylinder is 2 units tall at scale.y = 1
         if (mat != null) go.GetComponent<Renderer>().sharedMaterial = mat;
         return go;
+    }
+
+    // A bogie (wheel truck): a low frame with two axles — one wheel set on the
+    // player-facing side and one set behind — placed under a rail vehicle.
+    private static void Bogie(Transform parent, string name, Vector3 center, float faceZ, Material frameMat, Material wheelMat)
+    {
+        Box(parent, name + "_frame", new Vector3(center.x, 0.62f, center.z), new Vector3(2.4f, 0.35f, 1.9f), frameMat);
+        for (int w = 0; w < 2; w++)
+        {
+            float wx = center.x - 0.75f + w * 1.5f;
+            Cyl(parent, $"{name}_w{w}f", new Vector3(wx, 0.42f, faceZ + 0.05f), new Vector3(0.72f, 0.12f, 0.72f), wheelMat, new Vector3(90, 0, 0));
+            Cyl(parent, $"{name}_w{w}b", new Vector3(wx, 0.42f, center.z + 1.0f), new Vector3(0.72f, 0.12f, 0.72f), wheelMat, new Vector3(90, 0, 0));
+        }
     }
 
     private static void Floor(Transform parent, string name, Vector3 pos, Vector3 scale, Material mat)

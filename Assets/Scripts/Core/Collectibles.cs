@@ -41,17 +41,17 @@ public static class Catalog
 {
     public static readonly List<Collectible> All = new List<Collectible>
     {
-        new Collectible("dictionary", "cuisine",       "Dicționar",        "DEX", new Color(0.30f, 0.55f, 0.95f),
+        new Collectible("dictionary", "cuisine",       "Dictionary",     "Dic", new Color(0.30f, 0.55f, 0.95f),
             "A Romanian dictionary — proof you can name the dishes and words you met in the kitchen."),
-        new Collectible("compass",    "geography",     "Busolă",           "N",   new Color(0.25f, 0.75f, 0.55f),
+        new Collectible("compass",    "geography",     "Compass",        "N",   new Color(0.25f, 0.75f, 0.55f),
             "A traveller's compass — earned for mapping Romania's regions, mountains and rivers."),
-        new Collectible("scroll",     "history",       "Hrisov Vechi",     "Hr",  new Color(0.80f, 0.62f, 0.22f),
+        new Collectible("scroll",     "history",       "Ancient Scroll", "Scr", new Color(0.80f, 0.62f, 0.22f),
             "An ancient scroll — earned for placing Romania's history in order, from Dacia to 1989."),
-        new Collectible("note",       "music",         "Notă Muzicală",    "Mz",  new Color(0.66f, 0.42f, 0.90f),
+        new Collectible("note",       "music",         "Musical Note",   "Mus", new Color(0.66f, 0.42f, 0.90f),
             "A golden musical note — earned for knowing the doina, the hora and Romania's great composers."),
-        new Collectible("ticket",     "transport",     "Bilet de Tren",    "CFR", new Color(0.90f, 0.55f, 0.20f),
+        new Collectible("ticket",     "transport",     "Train Ticket",   "CFR", new Color(0.90f, 0.55f, 0.20f),
             "A train ticket — earned for reading timetables and choosing the right train."),
-        new Collectible("badge",      "accessibility", "Insignă de Acces", "Ac",  new Color(0.30f, 0.78f, 0.85f),
+        new Collectible("badge",      "accessibility", "Access Badge",   "Acc", new Color(0.30f, 0.78f, 0.85f),
             "An accessibility badge — earned for making the city welcoming to everyone."),
     };
 

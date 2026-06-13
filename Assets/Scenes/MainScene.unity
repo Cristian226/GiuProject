@@ -6951,7 +6951,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3417620924868647016, guid: 10348d885afc4924e9daa5d07655d02e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 4.315
+      value: 4.32
       objectReference: {fileID: 0}
     - target: {fileID: 3417620924868647016, guid: 10348d885afc4924e9daa5d07655d02e, type: 3}
       propertyPath: m_LocalPosition.y
@@ -6959,7 +6959,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3417620924868647016, guid: 10348d885afc4924e9daa5d07655d02e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.685
+      value: -1.68
       objectReference: {fileID: 0}
     - target: {fileID: 3417620924868647016, guid: 10348d885afc4924e9daa5d07655d02e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -7559,7 +7559,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 507b06707f64e144ab139fd0cb0e8bcb, type: 3}
       propertyPath: m_Name
-      value: little_boy_B
+      value: FinalQuest
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 507b06707f64e144ab139fd0cb0e8bcb, type: 3}
       propertyPath: m_Controller
@@ -7572,6 +7572,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 507b06707f64e144ab139fd0cb0e8bcb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 831078044}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 507b06707f64e144ab139fd0cb0e8bcb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 831078045}
   m_SourcePrefab: {fileID: 100100000, guid: 507b06707f64e144ab139fd0cb0e8bcb, type: 3}
 --- !u!1001 &696708995
 PrefabInstance:
@@ -9159,6 +9162,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AutoPlayAnimations: 1
   PaletteOverride: {fileID: 0}
+--- !u!114 &831078045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 831078041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ba54d072e1ff7f4abb59c22abb7de50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  npcName: Andrei
+  finaleSceneName: FinaleScene
+  finaleMissionId: finale
 --- !u!1001 &854272438
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16739,12 +16757,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7541fc6e28e8ac14f913dd05d9ecf6a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  areaCenter: {x: -0.43176842, y: -22.415497, z: -0.71019745}
-  areaSize: {x: 42.010376, y: 46.205276, z: 41.13579}
-  wallThickness: 2
-  wallHeight: 46.205276
-  addCeiling: 0
-  fallY: -30.415497
+  areaCenter: {x: 0, y: 0, z: 0}
+  areaSize: {x: 40, y: 40, z: 40}
+  wallThickness: 1
+  wallHeight: 20
+  addCeiling: 1
+  fallY: -4
   preferSpawnPoint: 1
 --- !u!4 &1626941559
 Transform:
