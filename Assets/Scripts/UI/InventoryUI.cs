@@ -73,7 +73,9 @@ public class InventoryUI : MonoBehaviour
         GameProgress p = GameProgress.Instance;
         int percent = p != null ? p.CompletionPercent() : 0;
 
-        percentText.text = $"Progress: {percent}%";
+        percentText.text = p != null
+            ? $"Lv {p.Level} · {p.Xp} XP · {percent}%"
+            : $"Progress: {percent}%";
         if (progressFill != null)
         {
             RectTransform rt = progressFill.rectTransform;

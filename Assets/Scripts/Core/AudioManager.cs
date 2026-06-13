@@ -116,6 +116,48 @@ public class AudioManager : MonoBehaviour
         if (clip != null && sfx != null) sfx.PlayOneShot(clip, GameSettings.EffectsVolume);
     }
 
+    private AudioClip fanfareClip;
+
+    /// <summary>Play a short celebratory fanfare (an ascending major arpeggio) — used
+    /// by the mission-complete celebration. Synthesised once, then cached.</summary>
+    public void PlayFanfare(float volumeScale = 1f)
+    {
+        if (sfx == null) return;
+        if (fanfareClip == null) fanfareClip = BuildFanfare();
+        sfx.PlayOneShot(fanfareClip, GameSettings.EffectsVolume * Mathf.Clamp01(volumeScale));
+    }
+
+    // C5 · E5 · G5 · C6 played as a quick rising arpeggio with a soft bell timbre.
+    private static AudioClip BuildFanfare()
+    {
+        const int sampleRate = 44100;
+        float[] freqs = { 523.25f, 659.25f, 783.99f, 1046.50f };
+        const float step = 0.13f;     // gap between note onsets
+        const float noteLen = 0.5f;   // each note's ring-out
+        float total = step * (freqs.Length - 1) + noteLen;
+        int samples = (int)(sampleRate * total);
+        float[] data = new float[samples];
+
+        for (int n = 0; n < freqs.Length; n++)
+        {
+            int start = (int)(n * step * sampleRate);
+            int len = (int)(noteLen * sampleRate);
+            for (int i = 0; i < len && start + i < samples; i++)
+            {
+                float t = (float)i / sampleRate;
+                float env = Mathf.Exp(-4.5f * t) * (t < 0.01f ? t / 0.01f : 1f);
+                float s = Mathf.Sin(2f * Mathf.PI * freqs[n] * t)
+                        + 0.4f * Mathf.Sin(2f * Mathf.PI * freqs[n] * 2f * t)
+                        + 0.2f * Mathf.Sin(2f * Mathf.PI * freqs[n] * 3f * t);
+                data[start + i] += s * env * 0.18f;
+            }
+        }
+
+        AudioClip clip = AudioClip.Create("fanfare", samples, 1, sampleRate, false);
+        clip.SetData(data, 0);
+        return clip;
+    }
+
     // ── Procedural instrument tones ───────────────────────────────────────────
     // Each instrument is a base pitch plus a harmonic mix, giving it a distinct
     // timbre without needing any recorded samples.

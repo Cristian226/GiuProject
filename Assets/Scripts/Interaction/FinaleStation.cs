@@ -27,7 +27,11 @@ public class FinaleStation : MonoBehaviour, IInteractable
 
     private void OnSuccess()
     {
-        if (GameProgress.Instance != null) GameProgress.Instance.CompleteFinalQuest();
-        ScreenPrompt.Toast("Congratulations! You've completed Primii Pași în România!", 7f);
+        if (GameProgress.Instance != null)
+        {
+            GameProgress.Instance.CompleteFinalQuest();
+            GameProgress.Instance.AddXp(300);
+        }
+        CelebrationManager.Get().PlayFinale();
     }
 }

@@ -5,8 +5,8 @@ using TMPro;
 /// <summary>
 /// The main-menu screen. Lives on a GameObject in the MenuScene and builds its UI
 /// in code: Continue (enabled only when a save exists, with its timestamp), New Game
-/// (asks before overwriting a save), Settings and Quit. Plays the anthem if an
-/// "anthem" clip is present in <c>Resources/Music</c>.
+/// (asks before overwriting a save), Settings and Quit. The menu is silent — music
+/// only ever plays from the theatre jukebox.
 /// </summary>
 public class MainMenuController : MonoBehaviour
 {
@@ -23,8 +23,9 @@ public class MainMenuController : MonoBehaviour
 
         BuildUI();
 
-        if (AudioManager.Instance != null && !AudioManager.Instance.IsMusicPlaying)
-            AudioManager.Instance.PlayMusicNamed("anthem");
+        // The menu is silent: music only plays from the theatre jukebox, so make sure
+        // nothing is left ringing if we arrived here straight from a scene.
+        if (AudioManager.Instance != null) AudioManager.Instance.StopMusic();
     }
 
     void Update()

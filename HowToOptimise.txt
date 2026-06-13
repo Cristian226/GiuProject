@@ -1,0 +1,31 @@
+Do these first (biggest impact, low effort)
+1. Static batching → collapses hundreds of draw calls.
+
+Select all non-moving geometry (walls, floor, platform, canopy, pillars, rails, the whole Train, Map_*, exhibits, plinths, columns) and tick Static (top-right of the Inspector).
+⚠️ Do not mark the Player, NPCs, particle systems, or anything that moves.
+2. Shadow / Quality settings → Edit ▸ Project Settings ▸ Quality.
+
+Lower Shadow Distance (e.g. 30–40 — your rooms are ~40 units wide).
+Soft Shadows → Hard Shadows, drop Shadow Resolution to Medium.
+Lower Pixel Light Count (e.g. 2–4). The Castle has 8 brazier point-lights and the Theatre 3 spotlights, all realtime — this caps how many hit each pixel.
+3. Camera far clip → select PlayerCamera, set Clipping Planes ▸ Far to ~60. Smaller frustum = fewer objects drawn + better culling.
+
+Bigger wins (more effort)
+4. Baked lighting → Window ▸ Rendering ▸ Lighting.
+
+Set the brazier/spotlight Lights to Baked (or Mixed), mark static objects Contribute GI, then Generate Lighting. Removes realtime per-light cost in the indoor scenes.
+5. Occlusion culling → Window ▸ Rendering ▸ Occlusion Culling ▸ Bake. Big help in the enclosed Castle/Theatre where walls hide most of the room.
+
+6. Texture compression (the imported Medieval Market pack) → select the textures, set Max Size to 1024/512, ensure Compression is on. Probably your largest memory saver.
+
+7. GPU Instancing → tick Enable GPU Instancing on the repeated Standard materials.
+
+⚠️ Important workflow gotcha for this project
+Regenerating a scene from Tools ▸ Romania Game rebuilds it from scratch — it will wipe your Static flags, lightmaps and occlusion bake. So either:
+
+finalize all geometry, then do steps 1/4/5 last, or
+let me add static-flag tagging (Batching/GI/Occluder static) directly into the scene generators, so it survives regeneration. That's a clean, safe change I can make from here.
+For your report (item 11)
+Apply one technique, then re-measure with F4, so you can attribute each FPS/draw-call gain to a specific change — that's exactly the evidence the presentation wants. Suggested order to measure: baseline → static batching → shadow settings → baked lighting.
+
+Want me to bake the static flags into the generators (so #1 survives regeneration), and add LOD/object-pooling on the code side?

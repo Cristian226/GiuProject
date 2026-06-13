@@ -142,14 +142,17 @@ public class GameFlowManager : MonoBehaviour
         bool nowUnlocked = GameProgress.Instance != null && GameProgress.Instance.FinalQuestUnlocked;
 
         Collectible reward = Catalog.ForMission(currentMissionId);
-        string msg;
-        if (first && reward != null)
-            msg = $"Mission complete!  Reward: {reward.displayName}.  Use the door to return.";
-        else if (first)
-            msg = "Mission complete!  Use the door to return.";
+        if (first)
+        {
+            const int xpGain = 100;
+            int newXp = GameProgress.Instance != null ? GameProgress.Instance.AddXp(xpGain) : xpGain;
+            CelebrationManager.Get().PlayMissionComplete(reward != null ? reward.displayName : null, xpGain, newXp);
+            ScreenPrompt.Toast("Use the door to return when you're ready.", 4.5f);
+        }
         else
-            msg = "Completed again!  Use the door to return.";
-        ScreenPrompt.Toast(msg, 5f);
+        {
+            ScreenPrompt.Toast("Completed again!  Use the door to return.", 4.5f);
+        }
 
         Debug.Log($"[GameFlow] Mission complete: {currentMissionId}");
 

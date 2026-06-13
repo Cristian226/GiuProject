@@ -151,6 +151,25 @@ public class GameProgress : MonoBehaviour
         Changed?.Invoke();
     }
 
+    // ── Experience / level ─────────────────────────────────────────────────────
+    public const int XpPerLevel = 250;
+
+    public int Xp => data.xp;
+    public int Level => data.xp / XpPerLevel + 1;
+    public int XpIntoLevel => data.xp % XpPerLevel;
+    /// <summary>Progress through the current level, 0..1 (drives the XP bar).</summary>
+    public float LevelFraction => (float)XpIntoLevel / XpPerLevel;
+
+    /// <summary>Award experience and auto-save. Returns the new total.</summary>
+    public int AddXp(int amount)
+    {
+        if (amount <= 0) return data.xp;
+        data.xp += amount;
+        Save();
+        Changed?.Invoke();
+        return data.xp;
+    }
+
     // ── Restore the player's saved spot (used by Continue) ─────────────────────
     public bool TryGetSavedPlayerPose(out Vector3 position, out Quaternion rotation)
     {

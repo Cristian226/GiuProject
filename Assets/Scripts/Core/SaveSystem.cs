@@ -21,6 +21,8 @@ public class SaveData
     public bool finalQuestUnlocked;
     public bool finalQuestComplete;
 
+    public int xp;   // experience points earned from completing missions
+
     // Where the player stood on the island (only meaningful when hasPlayerPos).
     public bool hasPlayerPos;
     public float playerX, playerY, playerZ, playerYaw;
