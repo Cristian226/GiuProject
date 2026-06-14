@@ -623,6 +623,311 @@ public static class RomaniaGameTools
     }
 
     // =====================================================================
+    //  Cuisine scene built on the Stylized House Interior pack
+    // =====================================================================
+    private const string HousePack = "Assets/StylArts/StylizedHouseInterior";
+    private const string HouseDemoScene = HousePack + "/Scene/Builtin_Stylized_House_Interior.unity";
+
+    [MenuItem("Tools/Romania Game/Stylized House/Build Cuisine Scene From Stylized House")]
+    public static void BuildCuisineFromHouse()
+    {
+        if (!File.Exists(HouseDemoScene))
+        {
+            EditorUtility.DisplayDialog("Romania Game",
+                "Couldn't find the Built-in house scene at:\n" + HouseDemoScene +
+                "\n\nImport the BUILT-IN package from the StylArts pack first.", "OK");
+            return;
+        }
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+
+        // Start from the textured Built-in house and turn it INTO the Cuisine scene.
+        // We save under a new path, so the original demo scene file is never touched.
+        Scene scene = EditorSceneManager.OpenScene(HouseDemoScene, OpenSceneMode.Single);
+
+        // 1) Strip the demo's camera/audio so the first-person player owns them.
+        foreach (Camera c in UnityEngine.Object.FindObjectsOfType<Camera>()) UnityEngine.Object.DestroyImmediate(c);
+        foreach (AudioListener a in UnityEngine.Object.FindObjectsOfType<AudioListener>()) UnityEngine.Object.DestroyImmediate(a);
+
+        // 2) Repair any white (blank MI_) materials left on raw meshes.
+        int fixedMats = FixHouseMaterials();
+
+        // 3) Make sure the room is lit even if the demo relied on a baked/HDRP setup.
+        if (UnityEngine.Object.FindObjectOfType<Light>() == null)
+            Lighting(new Color(0.5f, 0.5f, 0.55f), 1.0f, new Vector3(50f, -30f, 0f), new Color(1f, 0.97f, 0.9f));
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        if (RenderSettings.ambientLight.maxColorComponent < 0.15f)
+            RenderSettings.ambientLight = new Color(0.45f, 0.45f, 0.5f);
+
+        // 4) Work out the interior bounds and a safe-ish spawn (room centre, floor + 1).
+        Bounds b = default; bool haveBounds = TryComputeSceneBounds(out b);
+        Vector3 spawn = haveBounds ? new Vector3(b.center.x, b.min.y + 1.0f, b.center.z) : new Vector3(0, 1, 0);
+
+        // 5) First-person player.
+        Player(spawn, 0f);
+
+        // 6) Cooking station — wired onto the real stove when we can find it, else a marker.
+        GameObject stove = FindByNameContains("Stove", "Frame");
+        if (stove != null)
+        {
+            if (stove.GetComponent<CuisineMission>() == null) stove.AddComponent<CuisineMission>();
+            if (stove.GetComponent<MissionStation>() == null) stove.AddComponent<MissionStation>();
+            EnsureFittedCollider(stove);
+            Sign(null, "CookingStation_Sign", "Cooking Station\n[Start the cuisine lesson]",
+                stove.transform.position + new Vector3(0, 1.6f, 0), spawn, 1.0f,
+                new Color(1f, 0.95f, 0.7f), new Vector2(4, 1.6f), TextAlignmentOptions.Center, null);
+        }
+        else
+        {
+            Station(null, typeof(CuisineMission), "Cooking Station\n[Start the cuisine lesson]",
+                spawn + new Vector3(2.5f, -0.1f, 0f), spawn, Mat(new Color(0.5f, 0.4f, 0.3f)));
+        }
+
+        // 7) Exit door — wired onto the house door if present, else a fresh portal.
+        GameObject houseDoor = FindByNameContains("Door", "Frame");
+        if (houseDoor != null)
+        {
+            if (houseDoor.GetComponent<ReturnPortal>() == null) houseDoor.AddComponent<ReturnPortal>();
+            EnsureFittedCollider(houseDoor);
+            Sign(null, "Exit_Sign", "EXIT\n[Return to the city]",
+                houseDoor.transform.position + new Vector3(0, 1.8f, 0), spawn, 0.9f,
+                new Color(0.6f, 1f, 0.7f), new Vector2(4, 1.4f), TextAlignmentOptions.Center, null);
+        }
+        else
+        {
+            DoorAt(null, "Exit", "EXIT", spawn + new Vector3(-2.5f, 0.25f, 0f), spawn, Mat(new Color(0.34f, 0.22f, 0.12f)));
+        }
+
+        // 8) Inspectable cuisine exhibits placed on real props (skipped if not found).
+        WireInfoProp("Fridge", "The Pantry",
+            "Romanian kitchens keep jars of zacuscă and murături (pickles) — preserved summer veg for winter.");
+        WireInfoProp("Pot", "The Sarmale Pot",
+            "Sarmale — cabbage rolls of minced meat and rice — simmer for hours in a big pot, the centrepiece of any feast.");
+
+        // 9) Managers + a world boundary fitted to the house.
+        Managers();
+        WorldBounds wb = new GameObject("WorldBoundary").AddComponent<WorldBounds>();
+        if (haveBounds)
+        {
+            wb.areaCenter = new Vector3(b.center.x, b.min.y, b.center.z);
+            wb.areaSize = new Vector3(b.size.x * 1.1f + 3f, Mathf.Max(20f, b.size.y + 8f), b.size.z * 1.1f + 3f);
+            wb.wallHeight = wb.areaSize.y;
+            wb.fallY = b.min.y - 8f;
+        }
+
+        // 10) Save AS the Cuisine scene (overwrites the old kitchen; MainScene's MissionGiver
+        //     points at "CuisineScene" by name, so the wiring stays intact).
+        string path = $"{ScenesFolder}/CuisineScene.unity";
+        EditorSceneManager.SaveScene(scene, path);
+        RegisterScenes();
+
+        EditorUtility.DisplayDialog("Romania Game",
+            $"Built CuisineScene from the Stylized House (fixed {fixedMats} blank material slot(s)).\n\n" +
+            "⚠ The Player, Cooking Station and Exit were dropped at the room centre — move them into " +
+            "the kitchen where you want them, then save the scene (Ctrl+S).", "Great");
+    }
+
+    [MenuItem("Tools/Romania Game/Stylized House/Fix White Materials (MI_ → M_) In Open Scene")]
+    public static void FixWhiteMaterialsMenu()
+    {
+        int n = FixHouseMaterials();
+        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        EditorUtility.DisplayDialog("Romania Game",
+            $"Replaced {n} blank 'MI_' material slot(s) with the textured 'M_' versions.\n\nSave the scene to keep it.", "OK");
+    }
+
+    // Swap any blank FBX-extracted 'MI_*' material on a renderer for the textured
+    // 'M_*' master of the same name (MI_Foo → M_Foo). Returns how many slots changed.
+    private static int FixHouseMaterials()
+    {
+        var byKey = new Dictionary<string, Material>();
+        foreach (string guid in AssetDatabase.FindAssets("t:Material", new[] { HousePack }))
+        {
+            Material m = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));
+            if (m != null && m.name.StartsWith("M_") && !m.name.StartsWith("MI_"))
+                byKey[m.name.Substring(2)] = m;   // key after "M_"
+        }
+
+        int fixedCount = 0;
+        foreach (Renderer r in UnityEngine.Object.FindObjectsOfType<Renderer>())
+        {
+            Material[] mats = r.sharedMaterials;
+            bool changed = false;
+            for (int i = 0; i < mats.Length; i++)
+            {
+                Material mat = mats[i];
+                if (mat == null || !mat.name.StartsWith("MI_")) continue;   // key after "MI_"
+                if (byKey.TryGetValue(mat.name.Substring(3), out Material good)) { mats[i] = good; changed = true; fixedCount++; }
+            }
+            if (changed) { r.sharedMaterials = mats; EditorUtility.SetDirty(r); }
+        }
+        return fixedCount;
+    }
+
+    private static GameObject FindByNameContains(string contains, string exclude = null)
+    {
+        foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
+        {
+            GameObject hit = SearchContains(root.transform, contains, exclude);
+            if (hit != null) return hit;
+        }
+        return null;
+    }
+
+    private static GameObject SearchContains(Transform t, string contains, string exclude)
+    {
+        bool ok = t.name.IndexOf(contains, StringComparison.OrdinalIgnoreCase) >= 0
+                  && (exclude == null || t.name.IndexOf(exclude, StringComparison.OrdinalIgnoreCase) < 0);
+        if (ok && t.GetComponentInChildren<Renderer>() != null) return t.gameObject;
+        for (int i = 0; i < t.childCount; i++)
+        {
+            GameObject r = SearchContains(t.GetChild(i), contains, exclude);
+            if (r != null) return r;
+        }
+        return null;
+    }
+
+    private static void WireInfoProp(string contains, string objName, string info)
+    {
+        GameObject go = FindByNameContains(contains, "Frame");
+        if (go == null) return;
+        if (go.GetComponent<InfoObject>() == null)
+        {
+            InfoObject io = go.AddComponent<InfoObject>();
+            io.objectName = objName;
+            io.info = info;
+        }
+        EnsureFittedCollider(go);
+    }
+
+    // Add a BoxCollider sized to the object's child renderers, if it has no collider yet,
+    // so the interaction raycast can hit it (mirrors FinaleGiver's fitted collider).
+    private static void EnsureFittedCollider(GameObject go)
+    {
+        if (go.GetComponentInChildren<Collider>() != null) return;
+        Renderer[] rs = go.GetComponentsInChildren<Renderer>();
+        BoxCollider box = go.AddComponent<BoxCollider>();
+        if (rs.Length == 0) { box.size = Vector3.one; return; }
+
+        Bounds bb = rs[0].bounds;
+        foreach (Renderer r in rs) bb.Encapsulate(r.bounds);
+        box.center = go.transform.InverseTransformPoint(bb.center);
+        Vector3 ls = go.transform.lossyScale;
+        box.size = new Vector3(
+            bb.size.x / Mathf.Max(Mathf.Abs(ls.x), 1e-4f),
+            bb.size.y / Mathf.Max(Mathf.Abs(ls.y), 1e-4f),
+            bb.size.z / Mathf.Max(Mathf.Abs(ls.z), 1e-4f));
+    }
+
+    // Make the pack's materials render in Built-in: convert any Shader Graph / error
+    // material to Standard, then re-attach textures to empty albedo slots by name
+    // (M_Backsplash02 → T_Backsplash_D albedo + T_Backsplash_N normal).
+    [MenuItem("Tools/Romania Game/Stylized House/Fix House Materials (Shader Graph → Standard + Textures)")]
+    public static void RelinkHouseTextures()
+    {
+        string texFolder = HousePack + "/Art/Textures";
+        if (!Directory.Exists(texFolder))
+        {
+            EditorUtility.DisplayDialog("Romania Game", "No textures folder at:\n" + texFolder, "OK");
+            return;
+        }
+
+        // Index textures by normalised base name → albedo / normal.
+        var albedo = new Dictionary<string, Texture>();
+        var normal = new Dictionary<string, Texture>();
+        foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", new[] { texFolder }))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            string fn = Path.GetFileNameWithoutExtension(path);     // e.g. T_Backsplash_D
+            if (!fn.StartsWith("T_")) continue;
+            string body = fn.Substring(2);
+            int us = body.LastIndexOf('_');
+            if (us <= 0) continue;
+            string key = Norm(body.Substring(0, us));
+            string suffix = body.Substring(us + 1).ToLowerInvariant();
+            Texture tex = AssetDatabase.LoadAssetAtPath<Texture>(path);
+            if (IsAlbedoSuffix(suffix)) { if (!albedo.ContainsKey(key)) albedo[key] = tex; }
+            else if (IsNormalSuffix(suffix)) { normal[key] = tex; EnsureNormalImport(path); }
+        }
+
+        int fixedCount = 0, converted = 0, skipped = 0;
+        var skippedList = new List<string>();
+        Shader standard = Shader.Find("Standard");
+        string[] matFolders = { HousePack + "/Art/Materials", HousePack + "/Art/Meshes/Materials" };
+        foreach (string guid in AssetDatabase.FindAssets("t:Material", matFolders))
+        {
+            Material m = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));
+            if (m == null) continue;
+
+            // Shader Graph / error materials can't render in Built-in — force them to Standard.
+            if (standard != null && (m.shader == null
+                || m.shader.name == "Hidden/InternalErrorShader"
+                || m.shader.name.StartsWith("Shader Graphs/")
+                || m.shader.name.Contains("Leartes")))
+            {
+                m.shader = standard;
+                converted++;
+                EditorUtility.SetDirty(m);
+            }
+
+            if (!m.HasProperty("_MainTex")) continue;
+            if (m.GetTexture("_MainTex") != null) continue;               // already textured
+
+            string core = m.name;
+            if (core.StartsWith("MI_")) core = core.Substring(3);
+            else if (core.StartsWith("M_")) core = core.Substring(2);
+
+            string key = BestBaseMatch(Norm(core), albedo.Keys);
+            if (key == null) { skipped++; skippedList.Add(m.name); continue; }
+
+            m.SetTexture("_MainTex", albedo[key]);
+            if (normal.TryGetValue(key, out Texture n)) { m.SetTexture("_BumpMap", n); m.EnableKeyword("_NORMALMAP"); }
+            EditorUtility.SetDirty(m);
+            fixedCount++;
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        string skippedMsg = skipped == 0 ? "" :
+            $"\n\nSkipped {skipped} (no confident texture match — re-import or set these by hand):\n• " +
+            string.Join("\n• ", skippedList.GetRange(0, Mathf.Min(15, skippedList.Count)));
+        EditorUtility.DisplayDialog("Romania Game",
+            $"Converted {converted} Shader Graph/error material(s) to Standard and re-linked " +
+            $"albedo/normal maps on {fixedCount} of them." + skippedMsg, "OK");
+    }
+
+    private static string Norm(string s) => s.Replace("_", "").Replace(" ", "").ToLowerInvariant();
+
+    private static bool IsAlbedoSuffix(string s) =>
+        s == "d" || s == "bc" || s == "b" || s == "albedo" || s == "basecolor" || s == "color" || s == "diff" || s == "diffuse";
+
+    private static bool IsNormalSuffix(string s) => s == "n" || s == "normal" || s == "nrm";
+
+    private static string BestBaseMatch(string key, IEnumerable<string> bases)
+    {
+        string best = null; int bestScore = 0;
+        foreach (string b in bases)
+        {
+            if (b.Length < 3) continue;
+            bool match = key == b || key.StartsWith(b) || b.StartsWith(key);
+            if (!match) continue;
+            int score = Mathf.Min(key.Length, b.Length) + (key == b ? 100 : 0);
+            if (score > bestScore) { bestScore = score; best = b; }
+        }
+        return bestScore >= 4 ? best : null;
+    }
+
+    private static void EnsureNormalImport(string path)
+    {
+        var ti = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (ti != null && ti.textureType != TextureImporterType.NormalMap)
+        {
+            ti.textureType = TextureImporterType.NormalMap;
+            ti.SaveAndReimport();
+        }
+    }
+
+    // =====================================================================
     //  Building-block helpers
     // =====================================================================
     private static Scene NewScene() =>
