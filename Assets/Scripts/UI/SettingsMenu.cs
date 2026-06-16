@@ -4,12 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// The full settings menu (Controls · Mouse · Audio · Graphics), built in code on
-/// the same lines as the other runtime UIs. Reads and writes <see cref="GameSettings"/>,
-/// which persists every change immediately, so nothing here needs a Save button —
-/// there is a Reset-to-defaults instead. Opened from the pause menu and main menu.
-/// </summary>
 public class SettingsMenu : MonoBehaviour
 {
     public static bool IsOpen { get; private set; }
@@ -27,8 +21,7 @@ public class SettingsMenu : MonoBehaviour
     private TextMeshProUGUI rebindLabel;    // its on-screen key label
     private Action onClose;
 
-    // Keys offered to the rebind listener (skip controller buttons & None/Escape).
-    private static KeyCode[] scanKeys;
+    private static KeyCode[] scanKeys;      // keys offered to the rebind listener
 
     public static SettingsMenu Get()
     {
@@ -84,7 +77,6 @@ public class SettingsMenu : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape)) Close();
     }
 
-    // ── Rebinding ─────────────────────────────────────────────────────────────
     private void CaptureRebind()
     {
         if (Input.GetKeyDown(KeyCode.Escape)) { CancelRebind(); return; }
@@ -131,7 +123,6 @@ public class SettingsMenu : MonoBehaviour
         scanKeys = list.ToArray();
     }
 
-    // ── Tab rendering ─────────────────────────────────────────────────────────
     private void RenderTab(Tab tab)
     {
         currentTab = tab;
@@ -191,7 +182,6 @@ public class SettingsMenu : MonoBehaviour
         ToggleRow("Show FPS", GameSettings.ShowFps, GameSettings.SetShowFps);
     }
 
-    // ── Row builders ──────────────────────────────────────────────────────────
     private GameObject Row()
     {
         GameObject row = new GameObject("Row");
@@ -229,8 +219,7 @@ public class SettingsMenu : MonoBehaviour
         b.onClick.AddListener(() => BeginRebind(action, lbl));
     }
 
-    private void SliderRow(string label, float min, float max, float value,
-        Func<float, string> format, Action<float> onChange)
+    private void SliderRow(string label, float min, float max, float value, Func<float, string> format, Action<float> onChange)
     {
         GameObject row = Row();
         RowLabel(row.transform, label, 360);
@@ -322,7 +311,6 @@ public class SettingsMenu : MonoBehaviour
             Destroy(contentArea.GetChild(i).gameObject);
     }
 
-    // ── UI construction ───────────────────────────────────────────────────────
     private void BuildUI()
     {
         Canvas canvas = UIKit.Canvas("SettingsCanvas", 40, transform);

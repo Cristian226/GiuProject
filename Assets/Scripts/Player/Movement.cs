@@ -3,12 +3,6 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
-    /// <summary>
-    /// The active player, set on enable. A reliable, tag-independent handle so
-    /// systems like <see cref="GameFlowManager"/>, the boundary respawn and the
-    /// save/continue flow can always find the player (this project's player is built
-    /// on an imported character prefab that isn't guaranteed to carry the Player tag).
-    /// </summary>
     public static PlayerMovement Current { get; private set; }
 
     [SerializeField] private Transform playerCamera;
@@ -27,7 +21,6 @@ public class PlayerMovement : MonoBehaviour
     void Awake()
     {
         Current = this;
-        // Guarantee the player is discoverable by tag too (safe: "Player" is a builtin tag).
         if (!CompareTag("Player")) tag = "Player";
     }
 
@@ -63,8 +56,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // Freeze the player while a blocking UI (dialogue / mission mini-game / menu) is open.
-        if (UIBlocker.IsBlocked) return;
+        if (UIBlocker.IsBlocked) return;   // a dialogue / mini-game / menu is open
 
         HandleMovement();
         HandleMouseLook();
@@ -72,7 +64,6 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
-        // Movement axes come from the rebindable bindings in GameSettings.
         float horizontal = (GameSettings.Held(GameAction.MoveRight) ? 1f : 0f)
                          - (GameSettings.Held(GameAction.MoveLeft) ? 1f : 0f);
         float vertical = (GameSettings.Held(GameAction.MoveForward) ? 1f : 0f)

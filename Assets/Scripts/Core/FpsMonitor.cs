@@ -7,38 +7,30 @@ using UnityEngine.Profiling;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// A performance-monitoring overlay (item 9). Shows current / average / lowest /
-/// highest FPS, frame time and allocated memory, and can append a labelled benchmark
-/// row to <c>benchmarks.csv</c> under <see cref="Application.persistentDataPath"/> so
-/// "before" and "after" optimisation runs can be compared (item 11).
-///
-/// Persistent and auto-created. Hotkeys: <b>F3</b> toggle overlay · <b>F4</b> save a
-/// benchmark · <b>F5</b> reset the running stats.
-/// </summary>
+// Hotkeys: F3 toggle overlay, F4 save a benchmark, F5 reset the stats.
 public class FpsMonitor : MonoBehaviour
 {
     public static FpsMonitor Instance { get; private set; }
-
-    // Rolling / since-reset statistics.
-    private float warmupUntil;        // ignore the post-load hitch
-    private float accumTime;          // summed dt since reset (post-warmup)
-    private int accumFrames;          // frames since reset (post-warmup)
+    private float warmupUntil;
+    private float accumTime;
+    private int accumFrames;
     private float minFps = float.MaxValue;
     private float maxFps;
     private float curFps;
-
-    // Smoothed "current" sample.
     private float sampleAccum;
     private int sampleFrames;
     private float nextSample;
-
     private bool overlayOn;
     private GameObject root;
     private TextMeshProUGUI text;
     private float nextUiRefresh;
-
     private const float Warmup = 0.5f;
+    public float AverageFps => accumFrames > 0 ? accumFrames / accumTime : 0f;
+    public float MinFps => minFps == float.MaxValue ? 0f : minFps;
+    public float MaxFps => maxFps;
+    public float CurrentFps => curFps;
+    public float FrameTimeMs => curFps > 0f ? 1000f / curFps : 0f;
+    public float MemoryMb => Profiler.GetTotalAllocatedMemoryLong() / (1024f * 1024f);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -109,16 +101,6 @@ public class FpsMonitor : MonoBehaviour
         if (fps > maxFps) maxFps = fps;
     }
 
-    public float AverageFps => accumFrames > 0 ? accumFrames / accumTime : 0f;
-    public float MinFps => minFps == float.MaxValue ? 0f : minFps;
-    public float MaxFps => maxFps;
-    public float CurrentFps => curFps;
-    public float FrameTimeMs => curFps > 0f ? 1000f / curFps : 0f;
-    public float MemoryMb => Profiler.GetTotalAllocatedMemoryLong() / (1024f * 1024f);
-
-    // =====================================================================
-    //  Overlay
-    // =====================================================================
     private void ToggleOverlay()
     {
         overlayOn = !overlayOn;
@@ -154,9 +136,6 @@ public class FpsMonitor : MonoBehaviour
             "<size=80%>[F4] save benchmark  [F5] reset</size>";
     }
 
-    // =====================================================================
-    //  Benchmark capture (item 11 data)
-    // =====================================================================
     private string BenchmarkPath => Path.Combine(Application.persistentDataPath, "benchmarks.csv");
 
     public void SaveBenchmark()

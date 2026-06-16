@@ -3,10 +3,6 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 
-/// <summary>
-/// Shared colours so every runtime-built UI (dialogue, mini-game, info popup, HUD)
-/// looks consistent. Tweak here to restyle the whole game at once.
-/// </summary>
 public static class UITheme
 {
     public static readonly Color PanelBg       = new Color(0.07f, 0.08f, 0.13f, 0.97f);
@@ -20,14 +16,8 @@ public static class UITheme
     public static readonly Color ButtonAction  = new Color(0.18f, 0.45f, 0.30f, 1f);
 }
 
-/// <summary>
-/// Tiny factory helpers for building Screen-Space-Overlay UI in code, used by the
-/// self-building UI classes. Removes the copy-pasted canvas/label/EventSystem
-/// boilerplate that each of them used to carry.
-/// </summary>
 public static class UIKit
 {
-    /// <summary>Create a standard overlay canvas (1920x1080 reference, even scaling).</summary>
     public static Canvas Canvas(string name, int sortingOrder, Transform parent = null)
     {
         GameObject go = new GameObject(name);
@@ -46,7 +36,6 @@ public static class UIKit
         return canvas;
     }
 
-    /// <summary>Add/reuse a RectTransform and anchor it between the given corners.</summary>
     public static RectTransform Rect(GameObject go, Vector2 anchorMin, Vector2 anchorMax)
     {
         RectTransform rt = go.GetComponent<RectTransform>();
@@ -57,7 +46,6 @@ public static class UIKit
         return rt;
     }
 
-    /// <summary>A coloured Image panel anchored between two corners.</summary>
     public static Image Panel(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Color color)
     {
         GameObject go = new GameObject(name);
@@ -68,7 +56,6 @@ public static class UIKit
         return img;
     }
 
-    /// <summary>A non-interactive TextMeshPro label anchored between two corners.</summary>
     public static TextMeshProUGUI Label(Transform parent, Vector2 anchorMin, Vector2 anchorMax,
         float size, FontStyles style, TextAlignmentOptions align, Color color)
     {
@@ -84,7 +71,6 @@ public static class UIKit
         return t;
     }
 
-    /// <summary>Guarantee an EventSystem exists so UI buttons receive clicks.</summary>
     public static void EnsureEventSystem()
     {
         if (Object.FindObjectOfType<EventSystem>() != null) return;
@@ -93,8 +79,6 @@ public static class UIKit
         es.AddComponent<StandaloneInputModule>();
     }
 
-    /// <summary>A clickable button (coloured plate + centred TMP label). Returns the
-    /// Button so callers can keep a handle (to relabel, disable, recolour…).</summary>
     public static UnityEngine.UI.Button Button(Transform parent, string text, Color color,
         System.Action onClick, float fontSize = 26)
     {
@@ -118,8 +102,6 @@ public static class UIKit
         return b;
     }
 
-    /// <summary>A horizontal slider built to Unity's standard hierarchy. Anchors fill
-    /// the parent rect, so place it inside a layout cell or a sized container.</summary>
     public static UnityEngine.UI.Slider Slider(Transform parent, float min, float max, float value,
         System.Action<float> onChange)
     {

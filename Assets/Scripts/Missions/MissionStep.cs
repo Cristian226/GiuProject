@@ -1,16 +1,10 @@
 using System.Collections.Generic;
 
-/// <summary>
-/// One screen of a mission mini-game. Built in code by the mission-content
-/// scripts (CuisineMission, HistoryMission, ...). There are four kinds:
-///
-///   Info         - a teaching panel, just press Continue.
-///   SingleChoice - pick the one correct option (a quiz question).
-///   MultiSelect  - pick ALL correct options and no wrong ones (e.g. ingredients).
-///   Ordering     - reorder the items into the correct sequence (e.g. a timeline).
-///
-/// Use the static helpers (Info, Single, Multi, Order) to build steps cleanly.
-/// </summary>
+// The four kinds of mini-game screen:
+//   Info         - a teaching panel, just press Continue.
+//   SingleChoice - pick the one correct option.
+//   MultiSelect  - pick ALL correct options and no wrong ones.
+//   Ordering     - reorder the items into the correct sequence.
 public enum MissionStepKind { Info, SingleChoice, MultiSelect, Ordering }
 
 public class MissionOption
@@ -31,13 +25,13 @@ public class MissionOption
 public class MissionStep
 {
     public MissionStepKind kind;
-    public string title;        // short heading shown above the prompt
-    public string prompt;       // the question / instruction
-    public string explanation;  // teaching text shown once answered correctly
-    public string wrongFeedback; // SingleChoice: message shown on a wrong pick (optional)
+    public string title;
+    public string prompt;
+    public string explanation;     // shown once answered correctly
+    public string wrongFeedback;   // SingleChoice: message on a wrong pick (optional)
 
     public List<MissionOption> options;  // SingleChoice / MultiSelect
-    public List<string> orderItems;      // Ordering: the CORRECT order
+    public List<string> orderItems;      // Ordering: the correct order
 
     public static MissionStep Info(string title, string body)
     {
@@ -80,20 +74,9 @@ public class MissionStep
         };
     }
 
-    /// <summary>Fluent: set the message shown when a SingleChoice answer is wrong.</summary>
     public MissionStep WithWrongFeedback(string feedback)
     {
         wrongFeedback = feedback;
         return this;
     }
-}
-
-/// <summary>
-/// Implemented by mission-content components (one per mission scene). The
-/// MissionStation runs whatever steps this returns.
-/// </summary>
-public interface IMissionContent
-{
-    string Title { get; }
-    List<MissionStep> BuildSteps();
 }

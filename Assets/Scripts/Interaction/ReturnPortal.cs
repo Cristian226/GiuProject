@@ -1,16 +1,11 @@
 using UnityEngine;
 
-/// <summary>
-/// The door inside a mission scene. Look at it and press E to go back to the
-/// island. You can leave whether or not you finished the mini-game — completing a
-/// mission no longer teleports you out automatically.
-/// Needs a collider so the interaction raycast can hit it.
-/// </summary>
-public class ReturnPortal : MonoBehaviour, IInteractable
+// The door inside a mission scene: press E to go back to the island. Needs a collider.
+public class ReturnPortal : Interactable
 {
-    public string Prompt => "Return to the island";
+    public override string Prompt => "Return to the island";
 
-    public void Interact()
+    public override void Interact()
     {
         if (GameFlowManager.Instance != null)
             GameFlowManager.Instance.LeaveMission();

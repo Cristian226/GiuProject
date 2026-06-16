@@ -4,29 +4,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// Plays the reward celebration when a mission is completed: world-space fireworks
-/// and confetti, a synthesised fanfare, a "Mission Complete" banner and an animated
-/// XP gain. The grand finale gets a longer fireworks show plus a blocking victory
-/// screen with a completion certificate.
-///
-/// Persistent, auto-created and asset-free (particles use a runtime sprite material,
-/// the sound is synthesised by <see cref="AudioManager"/>), matching the rest of the
-/// project's self-building approach.
-/// </summary>
 public class CelebrationManager : MonoBehaviour
 {
     public static CelebrationManager Instance { get; private set; }
-
     private Material particleMat;
-
-    // Banner (non-blocking, fades out on its own).
     private CanvasGroup bannerGroup;
     private TextMeshProUGUI bannerTitle, bannerReward, bannerXp, bannerLevel;
     private Image xpFill;
     private Coroutine bannerRoutine;
-
-    // Victory screen (blocking, dismissed with a button).
     private GameObject victoryRoot;
 
     private static readonly Color[] Festive =
@@ -59,10 +44,6 @@ public class CelebrationManager : MonoBehaviour
         particleMat = new Material(s != null ? s : Shader.Find("Standard"));
     }
 
-    // =====================================================================
-    //  Public entry points
-    // =====================================================================
-    /// <summary>Mission reward celebration (non-blocking).</summary>
     public void PlayMissionComplete(string rewardName, int xpGained, int newXpTotal)
     {
         AudioManager.Instance?.PlayFanfare();
@@ -76,7 +57,6 @@ public class CelebrationManager : MonoBehaviour
         bannerRoutine = StartCoroutine(BannerRoutine(xpGained, newXpTotal, 4.5f));
     }
 
-    /// <summary>The grand finale: a big fireworks show and a victory certificate.</summary>
     public void PlayFinale()
     {
         AudioManager.Instance?.PlayFanfare(1f);
@@ -84,9 +64,6 @@ public class CelebrationManager : MonoBehaviour
         ShowVictoryScreen();
     }
 
-    // =====================================================================
-    //  Banner + XP animation
-    // =====================================================================
     private IEnumerator BannerRoutine(int xpGained, int newXpTotal, float holdSeconds)
     {
         bannerGroup.gameObject.SetActive(true);
@@ -160,7 +137,6 @@ public class CelebrationManager : MonoBehaviour
         bannerReward = UIKit.Label(panel.transform, new Vector2(0.04f, 0.40f), new Vector2(0.96f, 0.62f),
             30, FontStyles.Normal, TextAlignmentOptions.Center, UITheme.TextLight);
 
-        // XP bar.
         Image track = UIKit.Panel(panel.transform, "XpTrack", new Vector2(0.08f, 0.16f), new Vector2(0.92f, 0.30f),
             new Color(0.10f, 0.12f, 0.20f, 1f));
         xpFill = UIKit.Panel(track.transform, "XpFill", new Vector2(0f, 0f), new Vector2(0f, 1f), new Color(0.3f, 0.8f, 0.5f, 1f));
@@ -173,9 +149,6 @@ public class CelebrationManager : MonoBehaviour
         bannerGroup.gameObject.SetActive(false);
     }
 
-    // =====================================================================
-    //  Victory screen + certificate (finale)
-    // =====================================================================
     private void ShowVictoryScreen()
     {
         if (victoryRoot != null) { victoryRoot.SetActive(true); return; }
@@ -217,9 +190,6 @@ public class CelebrationManager : MonoBehaviour
         UIBlocker.Pop();
     }
 
-    // =====================================================================
-    //  Particles
-    // =====================================================================
     private void BurstAroundCamera(int count, float scale)
     {
         Camera cam = Camera.main;

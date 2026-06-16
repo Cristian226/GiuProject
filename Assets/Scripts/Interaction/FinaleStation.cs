@@ -1,25 +1,20 @@
 using UnityEngine;
 
-/// <summary>
-/// The station that runs the final quest. Like <see cref="MissionStation"/> but on
-/// success it marks the final quest complete (rather than a catalog mission) and
-/// shows a victory message. Put it on the same object as <see cref="FinaleMission"/>.
-/// </summary>
 [DisallowMultipleComponent]
-public class FinaleStation : MonoBehaviour, IInteractable
+public class FinaleStation : Interactable
 {
-    private IMissionContent content;
+    private MissionContent content;
 
-    public string Prompt => "Begin the Final Quest";
+    public override string Prompt => "Begin the Final Quest";
 
     void Awake()
     {
-        content = GetComponent<IMissionContent>();
+        content = GetComponent<MissionContent>();
         if (content == null)
-            Debug.LogError("[FinaleStation] No IMissionContent (e.g. FinaleMission) on this object.");
+            Debug.LogError("[FinaleStation] No MissionContent (e.g. FinaleMission) on this object.");
     }
 
-    public void Interact()
+    public override void Interact()
     {
         if (content == null) return;
         MissionMiniGame.Get().Run(content.Title, content.BuildSteps(), OnSuccess, null);

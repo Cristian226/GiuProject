@@ -4,28 +4,24 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// Self-contained UI engine that runs a list of <see cref="MissionStep"/>s and
-/// reports success when the player clears them all. Builds its entire interface
-/// in code (same approach as <see cref="DialogueManager"/>) so a mission scene
-/// only needs a station object — no canvas/prefab setup required.
-///
-/// Call <see cref="Get"/> then <see cref="Run"/>.
-/// </summary>
+// Runs a list of MissionSteps and reports success when the player clears them all.
+// Builds its whole UI in code, so a mission scene only needs a station object.
+// Call Get() then Run().
 public class MissionMiniGame : MonoBehaviour
 {
     public static bool IsOpen { get; private set; }
     private static MissionMiniGame instance;
 
-    // ── UI refs ───────────────────────────────────────────────
-    private GameObject root;   // the whole canvas (dim + panel); toggled on open/close
+    // UI refs.
+    private GameObject root;   // the whole canvas; toggled on open/close
     private GameObject panel;
+    private TextMeshProUGUI titleHeader;   // big mission name at the top
     private TextMeshProUGUI titleText, counterText, promptText, feedbackText, actionLabel;
     private RectTransform contentArea;
     private GameObject actionButtonGO;
     private Button actionButton;
 
-    // ── run state ─────────────────────────────────────────────
+    // Run state.
     private List<MissionStep> steps;
     private int index;
     private Action onSuccess, onAbort;
@@ -37,7 +33,6 @@ public class MissionMiniGame : MonoBehaviour
     private List<string> orderWorking;
     private List<MissionOption> multiOptions;   // shuffled options for the current MultiSelect step
 
-    /// <summary>Find the existing mini-game in the scene or create one on demand.</summary>
     public static MissionMiniGame Get()
     {
         if (instance == null)
@@ -53,7 +48,7 @@ public class MissionMiniGame : MonoBehaviour
     {
         if (instance != null && instance != this) { Destroy(gameObject); return; }
         instance = this;
-        IsOpen = false;   // defensive: clear any stale static from a previous scene
+        IsOpen = false;
         BuildUI();
     }
 
@@ -70,7 +65,7 @@ public class MissionMiniGame : MonoBehaviour
 
         root.SetActive(true);
         IsOpen = true;
-        UIBlocker.Push();   // also shows the cursor
+        UIBlocker.Push();
 
         titleHeader.text = missionTitle;
         RenderStep();
@@ -82,9 +77,6 @@ public class MissionMiniGame : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape)) Finish(false);
     }
 
-    // ==========================================================
-    //  Step rendering
-    // ==========================================================
     private void RenderStep()
     {
         stepSolved = false;
@@ -123,7 +115,6 @@ public class MissionMiniGame : MonoBehaviour
 
     private void RenderSingle(MissionStep step)
     {
-        // Shuffle so the correct answer isn't always in the same slot.
         foreach (MissionOption opt in ShuffledOptions(step.options))
         {
             MissionOption captured = opt;
@@ -150,7 +141,6 @@ public class MissionMiniGame : MonoBehaviour
 
     private void RenderMulti(MissionStep step)
     {
-        // Shuffle once; both rendering and checking use this same order.
         multiOptions = ShuffledOptions(step.options);
         for (int i = 0; i < multiOptions.Count; i++)
         {
@@ -254,16 +244,11 @@ public class MissionMiniGame : MonoBehaviour
         finished = true;
         IsOpen = false;
         root.SetActive(false);
-        UIBlocker.Pop();   // also hides the cursor
+        UIBlocker.Pop();
 
         if (success) onSuccess?.Invoke();
         else onAbort?.Invoke();
     }
-
-    // ==========================================================
-    //  UI construction
-    // ==========================================================
-    private TextMeshProUGUI titleHeader; // big mission name at the very top
 
     private void BuildUI()
     {
@@ -334,7 +319,6 @@ public class MissionMiniGame : MonoBehaviour
             Destroy(contentArea.GetChild(i).gameObject);
     }
 
-    // ── element factories ─────────────────────────────────────
     private GameObject MakeButton(Transform parent, string text, Color color)
     {
         Image img = UIKit.Panel(parent, "Option", Vector2.zero, Vector2.one, color);
@@ -385,7 +369,7 @@ public class MissionMiniGame : MonoBehaviour
         return img.gameObject;
     }
 
-    // Fisher-Yates copy of the options, so the correct answer lands in a random slot.
+    // Correct answer lands in a random slot.
     private static List<MissionOption> ShuffledOptions(List<MissionOption> src)
     {
         List<MissionOption> list = new List<MissionOption>(src);
@@ -397,7 +381,7 @@ public class MissionMiniGame : MonoBehaviour
         return list;
     }
 
-    // Fisher-Yates; guarantee the shuffle isn't already the correct order.
+    // Guarantee the shuffle isn't already the correct order.
     private static void Shuffle(List<string> list, List<string> correct)
     {
         for (int i = list.Count - 1; i > 0; i--)

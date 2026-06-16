@@ -2,15 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using O = MissionOption;
 
-/// <summary>
-/// Music mission content (the theatre / concert-hall scene). Attach to the
-/// MissionStation object.
-/// </summary>
-public class MusicMission : MonoBehaviour, IMissionContent
+public class MusicMission : MissionContent
 {
-    public string Title => "Romanian Music";
+    public override string Title => "Romanian Music";
 
-    public List<MissionStep> BuildSteps()
+    public override List<MissionStep> BuildSteps()
     {
         return new List<MissionStep>
         {

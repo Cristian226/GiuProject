@@ -1,15 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// Keeps the player inside the designed play area. On start it builds four tall,
-/// invisible wall colliders around a configurable box, so the CharacterController
-/// simply slides along them (smooth collision, never a teleport). A separate
-/// fall-guard catches the player if they somehow drop below the world and gently
-/// respawns them at a safe point.
-///
-/// Drop this on an empty "WorldBoundary" object in any scene, or use
-/// <b>Tools ▸ Romania Game ▸ Add / Fit World Boundary</b> to add and auto-size it.
-/// </summary>
 public class WorldBounds : MonoBehaviour
 {
     [Header("Play area (world space)")]
@@ -22,10 +12,8 @@ public class WorldBounds : MonoBehaviour
     public bool addCeiling = false;
 
     [Header("Fall guard")]
-    [Tooltip("If the player drops below this Y, they are respawned.")]
-    public float fallY = -12f;
-    [Tooltip("Use a GameObject named 'SpawnPoint' (if present) as the respawn spot.")]
-    public bool preferSpawnPoint = true;
+    public float fallY = -12f;            // respawn if the player drops below this Y
+    public bool preferSpawnPoint = true;  // use a GameObject named "SpawnPoint" if present
 
     private Vector3 respawn;
     private bool hasRespawn;
@@ -75,10 +63,8 @@ public class WorldBounds : MonoBehaviour
     {
         Vector3 half = areaSize * 0.5f;
         float h = wallHeight;
-        // Vertical centre: rise from ~2m below the area floor to high above.
         float cy = areaCenter.y + h * 0.5f - 2f;
 
-        // North / South run along X; East / West run along Z. Overlap at corners.
         MakeWall("Wall_North", new Vector3(areaCenter.x, cy, areaCenter.z + half.z),
             new Vector3(areaSize.x + wallThickness * 2f, h, wallThickness));
         MakeWall("Wall_South", new Vector3(areaCenter.x, cy, areaCenter.z - half.z),
@@ -99,10 +85,9 @@ public class WorldBounds : MonoBehaviour
         wall.transform.SetParent(transform, false);
         wall.transform.position = pos;
         BoxCollider box = wall.AddComponent<BoxCollider>();
-        box.size = size;   // invisible: collider only, no renderer
+        box.size = size;   // collider only, no renderer
     }
 
-    // Visualise the box in the editor.
     void OnDrawGizmosSelected()
     {
         Gizmos.color = new Color(0.3f, 0.8f, 1f, 0.35f);

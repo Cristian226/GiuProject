@@ -2,15 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using O = MissionOption;
 
-/// <summary>
-/// Geography &amp; legends mission content (the map-room scene). Attach to the
-/// MissionStation object.
-/// </summary>
-public class GeographyMission : MonoBehaviour, IMissionContent
+public class GeographyMission : MissionContent
 {
-    public string Title => "Geography & Legends";
+    public override string Title => "Geography & Legends";
 
-    public List<MissionStep> BuildSteps()
+    public override List<MissionStep> BuildSteps()
     {
         return new List<MissionStep>
         {

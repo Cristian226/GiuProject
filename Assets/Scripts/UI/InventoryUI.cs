@@ -2,12 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// The collectibles inventory. A persistent, auto-created overlay opened with the
-/// (rebindable) Inventory key. Shows every reward in the catalog as a tile —
-/// collected ones in colour with their glyph (click to read about them), missing
-/// ones locked — plus an overall completion percentage and a progress bar.
-/// </summary>
 public class InventoryUI : MonoBehaviour
 {
     public static bool IsOpen { get; private set; }
@@ -49,8 +43,6 @@ public class InventoryUI : MonoBehaviour
         if (GameSettings.Pressed(GameAction.Inventory)) Open();
     }
 
-    public static void OpenInventory() { if (instance != null) instance.Open(); }
-
     public void Open()
     {
         UIKit.EnsureEventSystem();
@@ -67,7 +59,6 @@ public class InventoryUI : MonoBehaviour
         UIBlocker.Pop();
     }
 
-    // ── Rendering ─────────────────────────────────────────────────────────────
     private void Render()
     {
         GameProgress p = GameProgress.Instance;
@@ -108,20 +99,17 @@ public class InventoryUI : MonoBehaviour
         Button b = tile.gameObject.AddComponent<Button>();
         b.targetGraphic = tile;
 
-        // Glyph (short text token — the font has no emoji)
         TextMeshProUGUI glyph = UIKit.Label(tile.transform, new Vector2(0f, 0.42f), new Vector2(1f, 0.95f),
             58, FontStyles.Bold, TextAlignmentOptions.Center,
             owned ? c.color : new Color(0.4f, 0.42f, 0.5f));
         glyph.text = owned ? c.glyph : "?";
 
-        // Name
         TextMeshProUGUI name = UIKit.Label(tile.transform, new Vector2(0.05f, 0.24f), new Vector2(0.95f, 0.42f),
             22, FontStyles.Bold, TextAlignmentOptions.Center,
             owned ? UITheme.Title : new Color(0.55f, 0.57f, 0.66f));
         name.text = owned ? c.displayName : "???";
         name.enableWordWrapping = true;
 
-        // Status
         string status = owned ? "Collected" : (required ? "Locked" : "Coming soon");
         Color statusColor = owned ? new Color(0.55f, 1f, 0.7f)
                                   : (required ? new Color(0.85f, 0.6f, 0.5f) : UITheme.TextSubtle);
@@ -134,7 +122,6 @@ public class InventoryUI : MonoBehaviour
             b.interactable = false;
     }
 
-    // ── UI construction ───────────────────────────────────────────────────────
     private void BuildUI()
     {
         Canvas canvas = UIKit.Canvas("InventoryCanvas", 32, transform);
