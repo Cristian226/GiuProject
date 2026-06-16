@@ -2,15 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// In-game pause menu. A persistent, auto-created overlay that watches for the
-/// (rebindable) Pause key during gameplay and offers Resume · Settings · Save ·
-/// Main Menu · Quit. Pausing sets <c>Time.timeScale = 0</c> and shows the cursor.
-///
-/// It deliberately yields the key while another panel is open (dialogue, mini-game,
-/// inventory, settings) so those keep their own Esc/close behaviour, and it stays
-/// dormant in the main-menu scene (where there is no player).
-/// </summary>
+// In-game pause menu. A persistent, auto-created overlay that watches for the Pause
+// key during gameplay and offers Resume · Settings · Save · Main Menu · Quit. Pausing
+// sets Time.timeScale = 0 and shows the cursor. Yields the key while another panel is
+// open, and stays dormant in the main-menu scene (where there is no player).
 public class PauseMenu : MonoBehaviour
 {
     public static bool IsPaused { get; private set; }
@@ -38,7 +33,7 @@ public class PauseMenu : MonoBehaviour
     {
         if (IsPaused)
         {
-            if (SettingsMenu.IsOpen) return;                 // settings owns the key now
+            if (SettingsMenu.IsOpen) return;   // settings owns the key now
             if (GameSettings.Pressed(GameAction.Pause)) Resume();
             return;
         }
@@ -49,8 +44,8 @@ public class PauseMenu : MonoBehaviour
 
     private bool CanOpen()
     {
-        if (UIBlocker.IsBlocked) return false;               // a dialogue / popup is up
-        if (PlayerMovement.Current == null) return false;    // no gameplay (e.g. main menu)
+        if (UIBlocker.IsBlocked) return false;             // a dialogue / popup is up
+        if (PlayerMovement.Current == null) return false;  // no gameplay (e.g. main menu)
         return true;
     }
 
@@ -71,7 +66,7 @@ public class PauseMenu : MonoBehaviour
         UIBlocker.Pop();
     }
 
-    // ── Button actions ────────────────────────────────────────────────────────
+    // ── Button actions ──
     private void OpenSettings() => SettingsMenu.Get().Open(null);
 
     private void SaveGame()
@@ -103,7 +98,7 @@ public class PauseMenu : MonoBehaviour
 #endif
     }
 
-    // ── UI construction ───────────────────────────────────────────────────────
+    // ── UI construction ──
     private void BuildUI()
     {
         Canvas canvas = UIKit.Canvas("PauseCanvas", 35, transform);

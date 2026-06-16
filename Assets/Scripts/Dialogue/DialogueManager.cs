@@ -3,28 +3,17 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// A small, persistent dialogue box. Shows one or more pages of text under a
-/// speaker name; the player presses Enter to advance and Esc to dismiss. The final
-/// page can carry an "accept" action — used by <see cref="MissionGiver"/> to start
-/// a mission. Builds its own UI in code and freezes the player while open.
-/// </summary>
 public class DialogueManager : MonoBehaviour
 {
     public static DialogueManager Instance { get; private set; }
-
-    [Tooltip("Optional TMP Font Asset to override the default dialogue font.")]
     public TMP_FontAsset dialogueFont;
-
     private GameObject panel;
     private TextMeshProUGUI speakerText, bodyText, instrText;
-
     private string[] pages;
     private int pageIndex;
     private Action onAccept, onCancel;
     private bool isOpen;
     private bool blockerPushed;
-
     public bool IsOpen => isOpen;
 
     void Awake()
@@ -35,11 +24,11 @@ public class DialogueManager : MonoBehaviour
         BuildUI();
     }
 
-    /// <summary>Show a single message (optionally with an Accept/Cancel choice).</summary>
+    // Show a single message (optionally with an Accept/Cancel choice).
     public void Show(string speaker, string message, Action onAccept = null, Action onCancel = null)
         => Show(speaker, new[] { message }, onAccept, onCancel);
 
-    /// <summary>Show a sequence of pages; Enter advances, the last page may accept.</summary>
+    // Show a sequence of pages; Enter advances, the last page may accept.
     public void Show(string speaker, string[] pages, Action onAccept = null, Action onCancel = null)
     {
         if (pages == null || pages.Length == 0) return;
@@ -52,7 +41,7 @@ public class DialogueManager : MonoBehaviour
         speakerText.text = speaker;
         panel.SetActive(true);
         isOpen = true;
-        PushBlocker();   // also shows the cursor
+        PushBlocker();
         ShowPage();
     }
 
@@ -88,7 +77,7 @@ public class DialogueManager : MonoBehaviour
     {
         panel.SetActive(false);
         isOpen = false;
-        PopBlocker();   // also hides the cursor
+        PopBlocker();
     }
 
     // Freeze player movement while the box is up. Guarded so it can't stack.

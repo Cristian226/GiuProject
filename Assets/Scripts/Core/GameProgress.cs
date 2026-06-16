@@ -1,26 +1,16 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// The live game progression: which missions are done, which collectibles the
-/// player owns, which areas are unlocked, and the final-quest state. A persistent,
-/// auto-created singleton (like <see cref="GameFlowManager"/>) and the single source
-/// of truth that <see cref="GameFlowManager"/>, the inventory UI and the main menu
-/// all read from.
-///
-/// <para>It starts empty (a fresh session). The main menu chooses what happens next:
-/// <see cref="NewGame"/> wipes the slot, <see cref="LoadFromDisk"/> continues a save.
-/// Completing a mission awards its collectible and auto-saves.</para>
-/// </summary>
 public class GameProgress : MonoBehaviour
 {
     public static GameProgress Instance { get; private set; }
-
-    /// <summary>Raised whenever progression changes (mission done, item earned, …).</summary>
-    public event Action Changed;
-
     private SaveData data = new SaveData();
+    public bool FinalQuestUnlocked => data.finalQuestUnlocked;
+    public bool FinalQuestComplete => data.finalQuestComplete;
+    public const int XpPerLevel = 250;
+    public int Xp => data.xp;
+    public int Level => data.xp / XpPerLevel + 1;
+    public int CollectedCount => data.collectedItems.Count;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -36,23 +26,17 @@ public class GameProgress : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    // ── Session setup (called by the main menu) ───────────────────────────────
-    /// <summary>Begin a brand-new game: clears memory and the save file.</summary>
     public void NewGame()
     {
         data = new SaveData();
         SaveSystem.Delete();
-        Changed?.Invoke();
     }
 
-    /// <summary>Continue: load the saved slot into memory (no-op if none exists).</summary>
     public void LoadFromDisk()
     {
         data = SaveSystem.Load() ?? new SaveData();
-        Changed?.Invoke();
     }
 
-    /// <summary>Persist the current progression. Pass a player to also store its spot.</summary>
     public void Save(Transform player = null)
     {
         if (player != null)
@@ -66,14 +50,9 @@ public class GameProgress : MonoBehaviour
         SaveSystem.Save(data);
     }
 
-    // ── Missions ──────────────────────────────────────────────────────────────
     public bool IsMissionComplete(string missionId) =>
         !string.IsNullOrEmpty(missionId) && data.completedMissions.Contains(missionId);
 
-    /// <summary>
-    /// Record a mission as complete, award its collectible (if any) and auto-save.
-    /// Returns true if this was the first time it was completed.
-    /// </summary>
     public bool CompleteMission(string missionId)
     {
         if (string.IsNullOrEmpty(missionId)) return false;
@@ -90,19 +69,12 @@ public class GameProgress : MonoBehaviour
             RefreshFinalQuestUnlock();
         }
 
-        Save();                 // auto-save after every completion
-        Changed?.Invoke();
+        Save();
         return firstTime;
     }
 
-    public int CompletedMissionCount => data.completedMissions.Count;
-
-    // ── Inventory / collectibles ──────────────────────────────────────────────
     public bool HasItem(string collectibleId) => data.collectedItems.Contains(collectibleId);
 
-    public int CollectedCount => data.collectedItems.Count;
-
-    /// <summary>How far through the required collection the player is, 0..1.</summary>
     public float CompletionFraction()
     {
         List<Collectible> required = Catalog.Required();
@@ -115,7 +87,6 @@ public class GameProgress : MonoBehaviour
 
     public int CompletionPercent() => Mathf.RoundToInt(CompletionFraction() * 100f);
 
-    /// <summary>True once every required collectible is owned.</summary>
     public bool AllCollected()
     {
         foreach (Collectible c in Catalog.Required())
@@ -123,54 +94,26 @@ public class GameProgress : MonoBehaviour
         return Catalog.Required().Count > 0;
     }
 
-    // ── Unlockable areas ──────────────────────────────────────────────────────
-    public bool IsAreaUnlocked(string areaId) => data.unlockedAreas.Contains(areaId);
-
-    public void UnlockArea(string areaId)
-    {
-        if (string.IsNullOrEmpty(areaId) || data.unlockedAreas.Contains(areaId)) return;
-        data.unlockedAreas.Add(areaId);
-        Save();
-        Changed?.Invoke();
-    }
-
-    // ── Final quest ───────────────────────────────────────────────────────────
-    public bool FinalQuestUnlocked => data.finalQuestUnlocked;
-    public bool FinalQuestComplete => data.finalQuestComplete;
-
     private void RefreshFinalQuestUnlock()
     {
         if (!data.finalQuestUnlocked && AllCollected())
-            data.finalQuestUnlocked = true;   // toast handled by the caller (GameFlowManager)
+            data.finalQuestUnlocked = true;
     }
 
     public void CompleteFinalQuest()
     {
         data.finalQuestComplete = true;
         Save();
-        Changed?.Invoke();
     }
 
-    // ── Experience / level ─────────────────────────────────────────────────────
-    public const int XpPerLevel = 250;
-
-    public int Xp => data.xp;
-    public int Level => data.xp / XpPerLevel + 1;
-    public int XpIntoLevel => data.xp % XpPerLevel;
-    /// <summary>Progress through the current level, 0..1 (drives the XP bar).</summary>
-    public float LevelFraction => (float)XpIntoLevel / XpPerLevel;
-
-    /// <summary>Award experience and auto-save. Returns the new total.</summary>
     public int AddXp(int amount)
     {
         if (amount <= 0) return data.xp;
         data.xp += amount;
         Save();
-        Changed?.Invoke();
         return data.xp;
     }
 
-    // ── Restore the player's saved spot (used by Continue) ─────────────────────
     public bool TryGetSavedPlayerPose(out Vector3 position, out Quaternion rotation)
     {
         position = new Vector3(data.playerX, data.playerY, data.playerZ);

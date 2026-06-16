@@ -1,16 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Persistent audio hub. Owns a looping music source and a one-shot effects source,
-/// keeps their volumes in sync with <see cref="GameSettings"/> (master · music ·
-/// effects), and can synthesise simple instrument tones at runtime so the music
-/// mission works even with no audio files imported.
-///
-/// <para>Drop real clips in <c>Assets/Resources/Music</c> (e.g. the anthem, a folk
-/// tune, a Zamfir pan-flute piece) and they become available to <see cref="PlayMusicNamed"/>
-/// and the in-game jukebox by file name. See <c>Assets/Resources/Music/README</c>.</para>
-/// </summary>
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
@@ -19,7 +9,7 @@ public class AudioManager : MonoBehaviour
     private AudioSource sfx;
 
     private readonly Dictionary<string, AudioClip> toneCache = new Dictionary<string, AudioClip>();
-    private Dictionary<string, AudioClip> playlist;   // name -> clip from Resources/Music
+    private Dictionary<string, AudioClip> playlist;   // Resources/Music
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -54,7 +44,7 @@ public class AudioManager : MonoBehaviour
         if (Instance == this) GameSettings.Changed -= ApplyVolumes;
     }
 
-    /// <summary>Master via the global listener; music/effects via their own sources.</summary>
+    // Master via the global listener; music/effects via their own sources.
     public void ApplyVolumes()
     {
         AudioListener.volume = GameSettings.MasterVolume;
@@ -62,7 +52,6 @@ public class AudioManager : MonoBehaviour
         if (sfx != null)   sfx.volume   = GameSettings.EffectsVolume;
     }
 
-    // ── Music ─────────────────────────────────────────────────────────────────
     public void PlayMusic(AudioClip clip, bool loop = true)
     {
         if (clip == null || music == null) return;
@@ -76,7 +65,6 @@ public class AudioManager : MonoBehaviour
 
     public bool IsMusicPlaying => music != null && music.isPlaying;
 
-    /// <summary>Play a clip from <c>Resources/Music</c> by file name (case-insensitive).</summary>
     public bool PlayMusicNamed(string clipName, bool loop = true)
     {
         EnsurePlaylist();
@@ -88,7 +76,6 @@ public class AudioManager : MonoBehaviour
         return false;
     }
 
-    /// <summary>All music clip names found under <c>Resources/Music</c>.</summary>
     public List<string> PlaylistNames()
     {
         EnsurePlaylist();
@@ -103,13 +90,7 @@ public class AudioManager : MonoBehaviour
             if (clip != null) playlist[clip.name.ToLowerInvariant()] = clip;
     }
 
-    // ── Effects ───────────────────────────────────────────────────────────────
-    public void PlaySfx(AudioClip clip)
-    {
-        if (clip != null && sfx != null) sfx.PlayOneShot(clip, GameSettings.EffectsVolume);
-    }
-
-    /// <summary>Play a synthesised instrument tone (used by the music mini-game).</summary>
+    // Play a synthesised instrument tone (used by the music mini-game).
     public void PlayTone(string instrument, float seconds = 1.4f)
     {
         AudioClip clip = GetTone(instrument, seconds);
@@ -118,8 +99,7 @@ public class AudioManager : MonoBehaviour
 
     private AudioClip fanfareClip;
 
-    /// <summary>Play a short celebratory fanfare (an ascending major arpeggio) — used
-    /// by the mission-complete celebration. Synthesised once, then cached.</summary>
+    // A short celebratory fanfare (rising major arpeggio). Synthesised once, then cached.
     public void PlayFanfare(float volumeScale = 1f)
     {
         if (sfx == null) return;
@@ -127,7 +107,6 @@ public class AudioManager : MonoBehaviour
         sfx.PlayOneShot(fanfareClip, GameSettings.EffectsVolume * Mathf.Clamp01(volumeScale));
     }
 
-    // C5 · E5 · G5 · C6 played as a quick rising arpeggio with a soft bell timbre.
     private static AudioClip BuildFanfare()
     {
         const int sampleRate = 44100;
@@ -158,9 +137,6 @@ public class AudioManager : MonoBehaviour
         return clip;
     }
 
-    // ── Procedural instrument tones ───────────────────────────────────────────
-    // Each instrument is a base pitch plus a harmonic mix, giving it a distinct
-    // timbre without needing any recorded samples.
     private struct Voice { public float freq; public float[] harmonics; public float vibrato; }
 
     private static Voice VoiceFor(string instrument)
@@ -223,7 +199,6 @@ public class AudioManager : MonoBehaviour
         return clip;
     }
 
-    // Soft attack + gentle exponential decay so tones don't click.
     private static float Envelope(float t, float total)
     {
         const float attack = 0.04f;

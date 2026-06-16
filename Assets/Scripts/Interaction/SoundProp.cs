@@ -1,18 +1,12 @@
 using UnityEngine;
 
-/// <summary>
-/// A prop that plays a synthesised instrument tone when interacted with — used by
-/// the Music environment so the player can "hear" each instrument (the tone is
-/// generated at runtime by <see cref="AudioManager"/>, no audio files required).
-/// </summary>
-public class SoundProp : MonoBehaviour, IInteractable
+public class SoundProp : Interactable
 {
-    [Tooltip("Instrument key understood by AudioManager (nai, vioara, tambal, cobza, cimpoi, fluier).")]
-    public string instrument = "nai";
+    public string instrument = "nai";   // key understood by AudioManager
     public string displayName = "Nai";
     public string promptVerb = "Play";
 
-    public string Prompt => $"{promptVerb} {displayName}";
+    public override string Prompt => $"{promptVerb} {displayName}";
 
     void Awake()
     {
@@ -20,7 +14,7 @@ public class SoundProp : MonoBehaviour, IInteractable
             gameObject.AddComponent<BoxCollider>();
     }
 
-    public void Interact()
+    public override void Interact()
     {
         if (AudioManager.Instance != null) AudioManager.Instance.PlayTone(instrument);
         ScreenPrompt.Toast($"Playing: {displayName}", 1.6f);

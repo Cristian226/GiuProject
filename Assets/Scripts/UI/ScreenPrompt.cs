@@ -1,14 +1,6 @@
 using UnityEngine;
 using TMPro;
 
-/// <summary>
-/// The lightweight HUD shared by every scene. Builds its own canvas on demand and
-/// provides three things:
-///   • a crosshair (auto-hidden while a blocking UI is open),
-///   • a "[E] &lt;verb&gt;" interaction hint (requested each frame by
-///     <see cref="PlayerInteraction"/>),
-///   • timed toast messages (e.g. "Mission complete!").
-/// </summary>
 public class ScreenPrompt : MonoBehaviour
 {
     private static ScreenPrompt instance;
@@ -23,15 +15,12 @@ public class ScreenPrompt : MonoBehaviour
     private int lastRequestFrame = -1;
     private float toastUntil = -1f;
 
-    // Smoothed FPS sampling.
     private float fpsAccum;
     private int fpsFrames;
     private float fpsNextUpdate;
 
-    /// <summary>Make sure the HUD (crosshair) exists in the current scene.</summary>
     public static void Ensure() => EnsureExists();
 
-    /// <summary>Show the interaction hint this frame (call every frame while aimed).</summary>
     public static void Request(string text)
     {
         EnsureExists();
@@ -40,7 +29,6 @@ public class ScreenPrompt : MonoBehaviour
         instance.lastRequestFrame = Time.frameCount;
     }
 
-    /// <summary>Flash a centred message for a few seconds.</summary>
     public static void Toast(string text, float seconds = 3f)
     {
         EnsureExists();
@@ -66,7 +54,7 @@ public class ScreenPrompt : MonoBehaviour
         RectTransform crt = crosshair.GetComponent<RectTransform>();
         crt.sizeDelta = new Vector2(10, 10);
 
-        // Interaction prompt (bottom-centre) with a soft background plate.
+        // Interaction prompt (bottom-centre).
         promptBox = UIKit.Panel(canvas.transform, "PromptBox",
             new Vector2(0.5f, 0.14f), new Vector2(0.5f, 0.14f), new Color(0f, 0f, 0f, 0.5f)).gameObject;
         promptBox.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 64);
@@ -89,7 +77,6 @@ public class ScreenPrompt : MonoBehaviour
         toastBox.SetActive(false);
     }
 
-    // Horizontal breathing room inside a fixed-size plate.
     private static TextMeshProUGUI Pad(TextMeshProUGUI label)
     {
         RectTransform rt = label.rectTransform;

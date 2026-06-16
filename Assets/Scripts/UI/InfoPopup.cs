@@ -2,17 +2,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// A reusable "read about this object" popup. Self-building (no prefab needed),
-/// works in any scene, and is shown by <see cref="InfoObject"/>. Close with
-/// E / Esc / Enter or the Close button.
-/// </summary>
 public class InfoPopup : MonoBehaviour
 {
     public static bool IsOpen { get; private set; }
     private static InfoPopup instance;
 
-    private GameObject root;    // the whole canvas (dim + panel); toggled on open/close
+    private GameObject root;   // the whole canvas; toggled on open/close
     private GameObject panel;
     private TextMeshProUGUI titleText, bodyText;
     private int openedFrame = -1;
@@ -32,7 +27,7 @@ public class InfoPopup : MonoBehaviour
     {
         if (instance != null && instance != this) { Destroy(gameObject); return; }
         instance = this;
-        IsOpen = false;   // defensive: clear any stale static from a previous scene
+        IsOpen = false;
         BuildUI();
     }
 
@@ -44,7 +39,7 @@ public class InfoPopup : MonoBehaviour
         root.SetActive(true);
         IsOpen = true;
         openedFrame = Time.frameCount;
-        UIBlocker.Push();   // also shows the cursor
+        UIBlocker.Push();
     }
 
     void Update()
@@ -61,7 +56,7 @@ public class InfoPopup : MonoBehaviour
     {
         IsOpen = false;
         root.SetActive(false);
-        UIBlocker.Pop();   // also hides the cursor
+        UIBlocker.Pop();
     }
 
     private void BuildUI()
@@ -91,7 +86,6 @@ public class InfoPopup : MonoBehaviour
             20, FontStyles.Italic, TextAlignmentOptions.Left, UITheme.TextSubtle)
             .text = "[E] / [Esc] to close";
 
-        // Close button.
         Image btn = UIKit.Panel(panel.transform, "CloseButton",
             new Vector2(0.78f, 0.03f), new Vector2(0.95f, 0.15f), UITheme.ButtonAction);
         btn.gameObject.AddComponent<Button>().onClick.AddListener(Close);

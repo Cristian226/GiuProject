@@ -2,12 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// The main-menu screen. Lives on a GameObject in the MenuScene and builds its UI
-/// in code: Continue (enabled only when a save exists, with its timestamp), New Game
-/// (asks before overwriting a save), Settings and Quit. The menu is silent — music
-/// only ever plays from the theatre jukebox.
-/// </summary>
 public class MainMenuController : MonoBehaviour
 {
     private GameObject mainButtons;
@@ -23,8 +17,7 @@ public class MainMenuController : MonoBehaviour
 
         BuildUI();
 
-        // The menu is silent: music only plays from the theatre jukebox, so make sure
-        // nothing is left ringing if we arrived here straight from a scene.
+        // The menu is silent: stop anything left ringing if we arrived straight from a scene.
         if (AudioManager.Instance != null) AudioManager.Instance.StopMusic();
     }
 
@@ -38,7 +31,6 @@ public class MainMenuController : MonoBehaviour
         }
     }
 
-    // ── Actions ───────────────────────────────────────────────────────────────
     private void OnContinue()
     {
         if (!SaveSystem.HasSave()) return;
@@ -73,7 +65,6 @@ public class MainMenuController : MonoBehaviour
         mainButtons.SetActive(!show);
     }
 
-    // ── UI construction ───────────────────────────────────────────────────────
     private void BuildUI()
     {
         Canvas canvas = UIKit.Canvas("MainMenuCanvas", 10, transform);

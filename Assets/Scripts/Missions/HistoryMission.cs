@@ -2,15 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using O = MissionOption;
 
-/// <summary>
-/// History mission content (the museum / castle scene). Attach to the
-/// MissionStation object.
-/// </summary>
-public class HistoryMission : MonoBehaviour, IMissionContent
+public class HistoryMission : MissionContent
 {
-    public string Title => "Romanian History";
+    public override string Title => "Romanian History";
 
-    public List<MissionStep> BuildSteps()
+    public override List<MissionStep> BuildSteps()
     {
         return new List<MissionStep>
         {

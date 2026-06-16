@@ -2,16 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using O = MissionOption;
 
-/// <summary>
-/// The capstone quest: a mixed quiz drawing on every category the player has
-/// already explored (cuisine, geography, history, music). Unlocked only after all
-/// reward collectibles are gathered. Attach to the finale station object.
-/// </summary>
-public class FinaleMission : MonoBehaviour, IMissionContent
+public class FinaleMission : MissionContent
 {
-    public string Title => "The Grand Final Challenge";
+    public override string Title => "The Grand Final Challenge";
 
-    public List<MissionStep> BuildSteps()
+    public override List<MissionStep> BuildSteps()
     {
         return new List<MissionStep>
         {

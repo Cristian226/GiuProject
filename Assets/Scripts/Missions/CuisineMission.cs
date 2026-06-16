@@ -2,15 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using O = MissionOption;
 
-/// <summary>
-/// Cuisine mission content (the kitchen scene). Attach to the MissionStation
-/// object. Edit the steps below freely — text supports TMP rich-text tags.
-/// </summary>
-public class CuisineMission : MonoBehaviour, IMissionContent
+public class CuisineMission : MissionContent
 {
-    public string Title => "Romanian Cuisine";
+    public override string Title => "Romanian Cuisine";
 
-    public List<MissionStep> BuildSteps()
+    public override List<MissionStep> BuildSteps()
     {
         return new List<MissionStep>
         {

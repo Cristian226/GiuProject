@@ -1,22 +1,12 @@
 using UnityEngine;
 
-/// <summary>
-/// The final-quest giver, placed on the little boy NPC in the city. He is always
-/// there to talk to:
-///   • before every collectible is gathered → he asks you to come back later,
-///   • once everything is collected           → he offers the Grand Final Challenge,
-///   • after you finish it                     → he congratulates you.
-///
-/// Adds a fitted collider on Awake if the model has none, so the interaction raycast
-/// can hit it (the CityPeople kid prefab ships without colliders).
-/// </summary>
-public class FinaleGiver : MonoBehaviour, IInteractable
+public class FinaleGiver : Interactable
 {
     public string npcName = "Andrei";
     public string finaleSceneName = "FinaleScene";
     public string finaleMissionId = "finale";
 
-    public string Prompt => $"Talk to {npcName}";
+    public override string Prompt => $"Talk to {npcName}";
 
     void Awake()
     {
@@ -24,13 +14,12 @@ public class FinaleGiver : MonoBehaviour, IInteractable
             AddFittedCollider();
     }
 
-    public void Interact()
+    public override void Interact()
     {
         if (DialogueManager.Instance == null) return;
 
         GameProgress p = GameProgress.Instance;
 
-        // 1) Already finished the whole game.
         if (p != null && p.FinalQuestComplete)
         {
             DialogueManager.Instance.Show(npcName, new[]
@@ -41,7 +30,6 @@ public class FinaleGiver : MonoBehaviour, IInteractable
             return;
         }
 
-        // 2) Not everything collected yet → come back later.
         if (p == null || !p.AllCollected())
         {
             int have = p != null ? p.CollectedCount : 0;
@@ -55,7 +43,6 @@ public class FinaleGiver : MonoBehaviour, IInteractable
             return;
         }
 
-        // 3) Everything collected → offer the final quest.
         DialogueManager.Instance.Show(npcName, new[]
         {
             "Amazing — you've collected every treasure: the dictionary, the compass, the scroll and the musical note!",
@@ -69,7 +56,6 @@ public class FinaleGiver : MonoBehaviour, IInteractable
             GameFlowManager.Instance.StartMission(finaleSceneName, finaleMissionId);
     }
 
-    // Box collider fitted to the model's renderers (mirrors InfoObject).
     private void AddFittedCollider()
     {
         Renderer[] renderers = GetComponentsInChildren<Renderer>();
