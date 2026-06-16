@@ -218,6 +218,7 @@ public static class RomaniaGameTools
         Box(root, "Wall_W", new Vector3(-22, 4, 3), new Vector3(0.6f, 8, 38), wallMat);
         Box(root, "Wall_E", new Vector3(22, 4, 3), new Vector3(0.6f, 8, 38), wallMat);
         Box(root, "Wall_S", new Vector3(0, 4, -19), new Vector3(46, 8, 0.6f), wallMat);
+        Box(root, "Roof", new Vector3(0, 8.3f, 1), new Vector3(46, 0.6f, 40), wallMat);
 
         // Raised platform along the track
         Box(root, "Platform", new Vector3(0, 0.3f, 8.5f), new Vector3(40, 0.6f, 6f), platform);
